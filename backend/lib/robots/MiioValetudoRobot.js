@@ -6,6 +6,7 @@ const http = require("http");
 const os = require("os");
 const path = require("path");
 const Semaphore = require("semaphore");
+const nanoid = require("nanoid");
 
 const Dummycloud = require("../miio/Dummycloud");
 const Logger = require("../Logger");
@@ -38,6 +39,8 @@ class MiioValetudoRobot extends ValetudoRobot {
         this.dummycloudBindIp = this.implConfig["dummycloudBindIp"] ?? (this.config.get("embedded") ? "127.0.0.1" : "0.0.0.0");
 
         this.mapUploadUrlPrefix = this.implConfig.mapUploadUrlPrefix ?? ("http://" + this.embeddedDummycloudIp + ":8079");
+
+        this.fdsObjects = [];
 
         this.localSocket = new RetryWrapper(
             (() => {
@@ -405,23 +408,26 @@ class MiioValetudoRobot extends ValetudoRobot {
                 let result = {ok: true};
 
                 const expires = Math.floor(new Date(new Date().getTime() + 15 * 60000).getTime() / 1000); //+15min;
+                
                 let url = `${this.mapUploadUrlPrefix}/api/miio/fds_upload_handler?ts=${process.hrtime().toString().replace(/,/g, "")}&suffix=${key}&Expires=${expires}`;
 
                 if (msg.method === "_sync.gen_tmp_presigned_url") {
                     result[key] = indices.map(i => {
+                        const objectName = nanoid.nanoid(8);
                         return {
-                            url: url + "&index=" + i + "&method=" + msg.method,
-                            obj_name: process.hrtime().toString().replace(/,/g, "") + "/" + i,
+                            url: url + "&obj_name=" + objectName + "&index=" + i + "&method=" + msg.method,
+                            obj_name: objectName,
                             method: "PUT",
                             expires_time: expires
                         };
                     });
                 } else if (msg.method === "_sync.gen_presigned_url") {
+                    const objectName = nanoid.nanoid(8);
                     result[key] = {
-                        url: url + "&method=" + msg.method,
+                        url: url + "&obj_name=" + objectName + "&method=" + msg.method,
                         ok: true,
                         expires_time: expires,
-                        obj_name: process.hrtime().toString().replace(/,/g, ""),
+                        obj_name: objectName,
                         method: "PUT",
                         pwd: "helloworld"
                     };
@@ -566,6 +572,8 @@ class MiioValetudoRobot extends ValetudoRobot {
      */
     async handleUploadedFDSData(data, query, params) {
         // By-default we assume that everything uploaded will be a map
+        this.addFdsObject(data, query.obj_name);
+        
         this.preprocessMap(data).then(async (preprocessedData) => {
             const parsedMap = await this.parseMap(preprocessedData);
 
@@ -575,6 +583,21 @@ class MiioValetudoRobot extends ValetudoRobot {
         }).catch(e => {
             Logger.warn("Failed to preprocess uploaded map");
         });
+    }
+
+    addFdsObject(data, objectName) {
+        const fdsObject =  {};
+
+        fdsObject.name = objectName;
+        fdsObject.data = data;
+        fdsObject.ts = Date.now();
+
+        Logger.debug("Adding fds data with name: " + objectName);
+        this.fdsObjects.push(fdsObject);
+
+        if(this.fdsObjects.length > 20) {
+            this.fdsObjects.shift();
+        }
     }
 
 

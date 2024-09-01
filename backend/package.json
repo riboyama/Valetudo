@@ -49,6 +49,7 @@
     "is-in-subnet": "4.0.1",
     "jstoxml": "3.2.10",
     "mqtt": "5.7.2",
+    "nanoid": "^3.3.7",
     "nested-object-assign": "1.0.4",
     "nested-property": "4.0.0",
     "openapi-validator-middleware": "3.2.6",
@@ -67,9 +68,9 @@
     "@types/node-ssdp": "4.0.4",
     "@types/semaphore": "1.1.4",
     "@types/uuid": "9.0.7",
+    "@yao-pkg/pkg": "5.11.0",
     "cross-env": "7.0.3",
     "mocha": "10.2.0",
-    "@yao-pkg/pkg": "5.11.0",
     "should": "13.2.3"
   }
 }

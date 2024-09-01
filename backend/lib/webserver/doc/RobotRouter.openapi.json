@@ -165,6 +165,57 @@
       }
     }
   },
+  "/api/v2/robot/get-object": {
+    "get": {
+      "tags": [
+        "Robot"
+      ],
+      "summary": "Get a fds object",
+      "description": "Retrieves a fds object from memory by object name",
+      "parameters": [
+        {
+          "name": "obj_name",
+          "in": "query",
+          "required": true,
+          "description": "The name of the object to retrieve",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Ok",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "The name of the object",
+                    "example": "12345678"
+                  },
+                  "data": {
+                    "type": "string",
+                    "description": "The fds data associated with the object",
+                    "example": "exampleData"
+                  },
+                  "ts": {
+                    "type": "integer",
+                    "format": "int64",
+                    "description": "Timestamp(ms) of when the object was retrieved",
+                    "example": 1632879023000
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      
+    }
+  },
   "/api/v2/robot/state/sse": {
     "get": {
       "tags": [
