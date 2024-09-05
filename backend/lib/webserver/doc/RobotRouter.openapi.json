@@ -181,6 +181,15 @@
           "schema": {
             "type": "string"
           }
+        },
+        {
+          "name": "index",
+          "in": "query",
+          "required": true,
+          "description": "The index of the object to retrieve",
+          "schema": {
+            "type": "string"
+          }
         }
       ],
       "responses": {
