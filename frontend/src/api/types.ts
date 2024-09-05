@@ -38,6 +38,7 @@ export enum Capability {
     WifiScan = "WifiScanCapability",
     ZoneCleaning = "ZoneCleaningCapability",
     Quirks = "QuirksCapability",
+    ObstacleImages = "ObstacleImagesCapability"
 }
 
 export type Point = {
@@ -103,6 +104,14 @@ export interface ValetudoVersion {
     commit: string;
 }
 
+export enum CPUUsageType {
+    USER = "user",
+    NICE = "nice",
+    SYS = "sys",
+    IDLE = "idle",
+    IRQ = "irq"
+}
+
 export interface SystemHostInfo {
     hostname: string;
     arch: string;
@@ -118,6 +127,9 @@ export interface SystemHostInfo {
         5: number;
         15: number;
     };
+    cpus: Array<{
+        usage: Record<CPUUsageType, number>
+    }>
 }
 
 export interface SystemRuntimeInfo {
@@ -562,4 +574,11 @@ export interface AutoEmptyDockAutoEmptyIntervalPayload {
 }
 export interface AutoEmptyDockAutoEmptyIntervalProperties {
     supportedIntervals: Array<AutoEmptyDockAutoEmptyInterval>
+}
+
+export interface ObstacleImagesProperties {
+    dimensions: {
+        width: number,
+        height: number
+    }
 }
