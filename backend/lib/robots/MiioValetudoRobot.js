@@ -39,6 +39,8 @@ class MiioValetudoRobot extends ValetudoRobot {
 
         this.mapUploadUrlPrefix = this.implConfig.mapUploadUrlPrefix ?? ("http://" + this.embeddedDummycloudIp + ":8079");
 
+        this.fdsObjects = [];
+
         this.localSocket = new RetryWrapper(
             (() => {
                 const socket = dgram.createSocket("udp4");
@@ -134,6 +136,7 @@ class MiioValetudoRobot extends ValetudoRobot {
                             }
                         }
 
+                        this.addFdsObject(uploadBuffer, req.query);
                         this.handleUploadedFDSData(
                             uploadBuffer,
                             req.query,
@@ -404,14 +407,17 @@ class MiioValetudoRobot extends ValetudoRobot {
 
                 let result = {ok: true};
 
+                const ts = Math.floor(new Date().getTime() / 1000);
                 const expires = Math.floor(new Date(new Date().getTime() + 15 * 60000).getTime() / 1000); //+15min;
-                let url = `${this.mapUploadUrlPrefix}/api/miio/fds_upload_handler?ts=${process.hrtime().toString().replace(/,/g, "")}&suffix=${key}&Expires=${expires}`;
+
+                const objName = process.hrtime().toString().replace(/,/g, "");
+                let url = `${this.mapUploadUrlPrefix}/api/miio/fds_upload_handler?ts=${ts}&suffix=${key}&Expires=${expires}&obj_name=${objName}`;
 
                 if (msg.method === "_sync.gen_tmp_presigned_url") {
                     result[key] = indices.map(i => {
                         return {
                             url: url + "&index=" + i + "&method=" + msg.method,
-                            obj_name: process.hrtime().toString().replace(/,/g, "") + "/" + i,
+                            obj_name: objName + "/" + i,
                             method: "PUT",
                             expires_time: expires
                         };
@@ -421,7 +427,7 @@ class MiioValetudoRobot extends ValetudoRobot {
                         url: url + "&method=" + msg.method,
                         ok: true,
                         expires_time: expires,
-                        obj_name: process.hrtime().toString().replace(/,/g, ""),
+                        obj_name: objName,
                         method: "PUT",
                         pwd: "helloworld"
                     };
@@ -575,6 +581,22 @@ class MiioValetudoRobot extends ValetudoRobot {
         }).catch(e => {
             Logger.warn("Failed to preprocess uploaded map");
         });
+    }
+
+    addFdsObject(data, query) {
+        const fdsObject =  {};
+
+        fdsObject.name = query.obj_name;
+        fdsObject.data = data;
+        fdsObject.index = query.index;
+        fdsObject.ts = query.ts;
+
+        Logger.debug("Adding fds object: " + query.obj_name + "/" + query.index);
+        this.fdsObjects.push(fdsObject);
+
+        if(this.fdsObjects.length > 20) {
+            this.fdsObjects.shift();
+        }
     }
 
 
