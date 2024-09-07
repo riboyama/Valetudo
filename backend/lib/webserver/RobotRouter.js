@@ -76,11 +76,11 @@ class RobotRouter {
                     
                     const objectName =  req.query.obj_name;
                     const index = req.query.index;
-                    const fdsObject = this.robot.fdsObjects.find(obj => obj.name === objectName && obj.index === index);
+                    const fdsObject = this.robot.fdsObjects.slice().reverse().find(obj => obj.name === objectName && obj.index === index);
 
                     if (fdsObject === undefined)
                     {
-                        Logger.info("Current fds objects");
+                        Logger.debug("Current fds objects");
                         this.robot.fdsObjects.forEach((obj) => Logger.info(`Object ${obj.name}/${obj.index}`));
 
                         res.status(404).send(`Object ${objectName}/${index} not found`);
