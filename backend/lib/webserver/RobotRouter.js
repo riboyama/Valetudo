@@ -74,16 +74,16 @@ class RobotRouter {
                 if (this.robot instanceof DreameValetudoRobot)
                 {
                     
-                    const objectName =  req.query.obj_name;
-                    const index = req.query.index;
-                    const fdsObject = this.robot.fdsObjects.slice().reverse().find(obj => obj.name === objectName && obj.index === index);
-
+                    let objectName =  req.query.obj_name;
+                    let fdsObjects = this.robot.fdsObjects.slice().reverse();
+                    
+                    let fdsObject = req.query.index ? fdsObjects.find(obj => obj.name === objectName && obj.index === req.query.index) : fdsObjects.find(obj => obj.name === objectName);
+                    
                     if (fdsObject === undefined)
                     {
-                        Logger.debug("Current fds objects");
-                        this.robot.fdsObjects.forEach((obj) => Logger.debug(`Object ${obj.name}/${obj.index}`));
+                        Logger.info(`Requested fds object ${objectName}/${req.query.index} not found`);
 
-                        res.status(404).send(`Object ${objectName}/${index} not found`);
+                        res.status(404).send(`Object ${objectName}/${req.query.index} not found`);
                         return;
                     }
 
