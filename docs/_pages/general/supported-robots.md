@@ -489,6 +489,11 @@ If you're rooting your W10 Pro, just run that command before setting up Valetudo
 The Dreame L10s Ultra is sold as:
 - Dreame L10s Ultra
 
+It is **not sold** as the L10s Ultra **Gen2**.<br/>
+That's a completely different robot with a confusing name that is **not** supported.
+
+You can tell the L10s Ultra from the unsupported but confusingly similar named L10 Ultra or the L10s Ultra Gen2 by its AI obstacle avoidance camera + the lack of an extendable mop.
+
 #### Comments
 
 Rooting is relatively easy. Usage of [the Dreame Breakout PCB](https://github.com/Hypfer/valetudo-dreameadapter) is highly recommended.
@@ -564,6 +569,18 @@ The Dreame L10s Pro Ultra Heat is sold as:
 The public root for this robot has just been released.<br/>
 This makes it not unlikely that we've missed something or that there might be yet unanticipated issues.<br/>
 You have been warned
+
+If the robot fails to dock after rooting:
+1. Dock it manually. Make sure that it is charging
+2. Head to the dustbuilder
+3. Build a firmware for manual install via SSH
+4. SSH into the robot
+5. Install the built firmware
+
+The issue is that rooting flashes a newer firmware than the one installed from the factory; bypassing the normal update process.
+As there seems to have been a breaking change in the communication between MCU and Linux-side-software, this breaks docking.
+
+Installing a firmware package via SSH uses the normal OTA update process and with that fixes this mismatch.
 
 Rooting is relatively easy. Usage of [the Dreame Breakout PCB](https://github.com/Hypfer/valetudo-dreameadapter) is highly recommended.
 All warranty seals stay intact.
@@ -827,6 +844,20 @@ The Roborock Q7 Max is sold as:
 - Roborock Q7 Max+
 
 #### Comments
+
+**2024-09-28 Update**<br/>
+Starting with robots manufactured somewhere around Q2 2024, Roborock switched to SkyHigh-brand NAND on their newly produced Q7 Max.
+Unfortunately, after dumping quite a few days into it, we haven't been able to get the rooting procedure working with said NAND.
+
+Thus, if you pick up a factory new Q7 Max then chances are that it's not rootable anymore.
+The rooting procedure is still safe. It doesn't brick the robot; it just doesn't work.
+
+You'll only find out that it's SkyHigh NAND once you've disassembled the robot and thus can't return it to the seller anymore.
+Thus, right now your options are:
+- Buying a used Q7 Max
+- Buying from a seller that doesn't move much inventory still selling older Q7 Max
+- Buying something else that is supported by Valetudo
+
 
 Rooting requires full disassembly.
 
