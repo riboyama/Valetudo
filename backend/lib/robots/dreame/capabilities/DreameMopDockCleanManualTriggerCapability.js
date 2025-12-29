@@ -49,7 +49,7 @@ class DreameMopDockCleanManualTriggerCapability extends MopDockCleanManualTrigge
             [
                 {
                     piid: this.additionalCleanupParametersPiid,
-                    value: "1,1"
+                    value: "2,1"
                 }
             ]
         );

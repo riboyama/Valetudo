@@ -1,12 +1,11 @@
 ---
 title: Supported Robots
 category: General
-order: 9
+order: 10
 ---
 
 # Supported Robots
 
-At the time of writing, (2024-06-18), Valetudo supports more than 35 different Robots.<br/>
 If you're interested in hardware specifics, teardowns and more, check out Dennis Giese's [Vacuum Robot Overview](https://robotinfo.dev/).
 
 Please note that this list is exhaustive. These are the supported robots.<br/>
@@ -83,7 +82,9 @@ You can use Ctrl + F to look for your model of robot.<br/>
    9. [D10s Pro](#dreame_d10spro)
    10. [D10s Plus](#dreame_d10splus)
    11. [L10s Pro Ultra Heat](#dreame_l10sproultraheat)
-   12. [X40 Ultra](#dreame_x40ultra)
+   12. [L40 Ultra](#dreame_l40ultra)
+   13. [X40 Ultra](#dreame_x40ultra)
+   14. [X40 Master](#dreame_x40master)
 3. [Roborock](#roborock)
    1. [S5](#roborock_s5)
    2. [S6](#roborock_s6)
@@ -96,16 +97,27 @@ You can use Ctrl + F to look for your model of robot.<br/>
    9. [Q7 Max](#roborock_q7max)
 4. [MOVA](#mova)
    1. [Z500](#mova_z500)
+   2. [S20 Ultra](#mova_s20ultra)
+   3. [P10 Pro Ultra](#mova_p10proultra)
 5. [Viomi](#viomi)
    1. [V6](#viomi_v6)
    2. [SE](#viomi_se)
-6. [Cecotec](#cecotec)
+6. [Eureka](#eureka)
+   1. [J15 Max Ultra](#eureka_j15mu)
+   2. [J15 Pro Ultra](#eureka_j15pu)
+   3. [J15 Ultra](#eureka_j15u)
+   4. [J12 Ultra](#eureka_j12u)
+   5. [E20 Evo Plus](#eureka_e20evoplus)
+   6. [E20 Plus](#eureka_e20plus)
+7. [Cecotec](#cecotec)
    1. [Conga 3290](#conga_3290)
    2. [Conga 3790](#conga_3790)
-7. [Proscenic](#proscenic)
+8. [Proscenic](#proscenic)
    1. [M6 Pro](#proscenic_m6pro)
-8. [Commodore](#commodore)
+9. [Commodore](#commodore)
    1. [CVR 200](#commodore_cvr200)
+10. [IKOHS](#ikohs)
+    1. [Netbot LS22](#ikohs_ls22)
 
 ## Xiaomi<a id="xiaomi"></a>
 
@@ -130,10 +142,11 @@ In that case, it only requires a Laptop. All warranty seals stay intact.
 
 If your robot is newer than that, full disassembly will be required.
 
+Depending on your OpenSSH version, it might be necessary to add `-o HostKeyAlgorithms=+ssh-rsa` when trying to ssh into the rooted robot.
+
 #### Details
 
 **Valetudo Binary**: `armv7`
-**Secure Boot**: `no`
 
 #### Rooting instructions
 
@@ -152,7 +165,8 @@ The Xiaomi 1C is made by Dreame. It is sold as:
 #### Comments
 
 **Important note:** <br/>
-There are multiple hardware revisions under the same name. Only the `dreame.vacuum.mc1808` is currently supported.
+There are multiple hardware revisions under the same name. Only the `dreame.vacuum.mc1808` is currently supported.<br/>
+You can distinguish the different revisions by looking at the SSID of the Wi-Fi AP of the robot.
 
 Rooting is pretty easy, only requiring a 3.3v USB UART Adapter, [the Dreame Breakout PCB](https://github.com/Hypfer/valetudo-dreameadapter) and almost no disassembly.
 All warranty seals stay intact.
@@ -259,7 +273,6 @@ While Valetudo works with their model firmwares, the recommended rooting procedu
 #### Details
 
 **Valetudo Binary**: `armv7`
-**Secure Boot**: `no`
 
 #### Rooting instructions
 
@@ -372,6 +385,8 @@ The Dreame F9 is sold as:
 
 Rooting is pretty easy, only requiring a 3.3v USB UART Adapter, [the Dreame Breakout PCB](https://github.com/Hypfer/valetudo-dreameadapter) and almost no disassembly.
 All warranty seals stay intact.
+
+If you only see weird characters on the UART, try `500000` instead of `115200` as the baud rate.
 
 #### Details
 
@@ -489,6 +504,11 @@ If you're rooting your W10 Pro, just run that command before setting up Valetudo
 The Dreame L10s Ultra is sold as:
 - Dreame L10s Ultra
 
+It is **not sold** as the L10s Ultra **Gen2**.<br/>
+That's a completely different robot with a confusing name that is **not** supported.
+
+You can tell the L10s Ultra from the unsupported but confusingly similar named L10 Ultra or the L10s Ultra Gen2 by its AI obstacle avoidance camera + the lack of an extendable mop.
+
 #### Comments
 
 Rooting is relatively easy. Usage of [the Dreame Breakout PCB](https://github.com/Hypfer/valetudo-dreameadapter) is highly recommended.
@@ -559,14 +579,78 @@ The Dreame L10s Pro Ultra Heat is sold as:
 - Dreame L10s Pro Ultra Heat
 
 #### Comments
+Rooting is relatively easy. Usage of [the Dreame Breakout PCB](https://github.com/Hypfer/valetudo-dreameadapter) is highly recommended.
+All warranty seals stay intact.
 
-**Important Note:**<br/>
-The public root for this robot has just been released.<br/>
-This makes it not unlikely that we've missed something or that there might be yet unanticipated issues.<br/>
-You have been warned
+If the robot fails to dock or you cannot select any operating modes after rooting:
+1. Dock it manually. Make sure that it is charging
+2. Head to the dustbuilder
+3. Build a firmware for manual install via SSH
+4. SSH into the robot
+5. Install the built firmware
+
+The issue is that rooting flashes a newer firmware than the one installed from the factory; bypassing the normal update process.
+As there seems to have been a breaking change in the communication between MCU and Linux-side-software, this breaks that stuff.
+
+Installing a firmware package via SSH uses the normal OTA update process and with that fixes this mismatch.
+
+If the rooted robot does not want to stay connected to your Wi-Fi network, try this one-liner:
+`rm -f /data/config/miio/wifi.conf /data/config/wifi/wpa_supplicant.conf /var/run/wpa_supplicant.conf; dreame_release.na -c 9 -i ap_info -m " "; reboot`
+
+After that, you will have to reconfigure Wi-Fi using Valetudo.
+
+
+If Valetudo doesn't want to auto-detect the robot, and it was made around 08/2025 or later, Dreame might've switched to negative
+deviceIds, which are unexpected for miio. To solve that:
+
+1. Check `/mnt/private/ULI/factory/did.txt`. Is it a negative number? If not, this is not your problem
+2. `mount -o remount,rw /mnt/private`
+3. ! BACKUP ! the original did. `cp /mnt/private/ULI/factory/did.txt /mnt/private/ULI/factory/did_orig.txt && sync`
+4. Edit the file and make the did a positive number. `nano /mnt/private/ULI/factory/did.txt`, and save
+5. `rm /data/config/miio/device.conf`. It will be regenerated on next boot
+6. `reboot`
+7. Ensure that Valetudo has now auto-detected the correct implementation and can talk to the robot via the miio stack
+
+#### Details
+
+**Valetudo Binary**: `aarch64`
+**Secure Boot**: `yes`
+
+#### Rooting instructions
+
+- [Fastboot](https://valetudo.cloud/pages/installation/dreame.html#fastboot)
+
+### L40 Ultra <a id="dreame_l40ultra"></a>
+
+<img src="./img/robots/dreame/dreame_l40ultra.jpg" width="1300" height="325"/>
+
+The Dreame L40 Ultra is sold as:
+- Dreame L40 Ultra
+
+It is **not sold** as the L40 Ultra **AE** nor as the L40**s Pro Ultra** nor any other name that isn't exactly this one.<br/>
+Those are all completely different robots with confusing names that are **not** supported.
+
+#### Comments
 
 Rooting is relatively easy. Usage of [the Dreame Breakout PCB](https://github.com/Hypfer/valetudo-dreameadapter) is highly recommended.
 All warranty seals stay intact.
+
+If the rooted robot does not want to stay connected to your Wi-Fi network, try this one-liner:
+`rm -f /data/config/miio/wifi.conf /data/config/wifi/wpa_supplicant.conf /var/run/wpa_supplicant.conf; dreame_release.na -c 9 -i ap_info -m " "; reboot`
+
+After that, you will have to reconfigure Wi-Fi using Valetudo.
+
+
+If Valetudo doesn't want to auto-detect the robot, and it was made around 08/2025 or later, Dreame might've switched to negative
+deviceIds, which are unexpected for miio. To solve that:
+
+1. Check `/mnt/private/ULI/factory/did.txt`. Is it a negative number? If not, this is not your problem
+2. `mount -o remount,rw /mnt/private`
+3. ! BACKUP ! the original did. `cp /mnt/private/ULI/factory/did.txt /mnt/private/ULI/factory/did_orig.txt && sync`
+4. Edit the file and make the did a positive number. `nano /mnt/private/ULI/factory/did.txt`, and save
+5. `rm /data/config/miio/device.conf`. It will be regenerated on next boot
+6. `reboot`
+7. Ensure that Valetudo has now auto-detected the correct implementation and can talk to the robot via the miio stack
 
 #### Details
 
@@ -587,13 +671,63 @@ The Dreame X40 Ultra is sold as:
 
 #### Comments
 
-**Important Note:**<br/>
-The public root for this robot has just been released.<br/>
-This makes it not unlikely that we've missed something or that there might be yet unanticipated issues.<br/>
-You have been warned
+Rooting is relatively easy. Usage of [the Dreame Breakout PCB](https://github.com/Hypfer/valetudo-dreameadapter) is highly recommended.
+All warranty seals stay intact.
+
+If the rooted robot does not want to stay connected to your Wi-Fi network, try this one-liner:
+`rm -f /data/config/miio/wifi.conf /data/config/wifi/wpa_supplicant.conf /var/run/wpa_supplicant.conf; dreame_release.na -c 9 -i ap_info -m " "; reboot`
+
+After that, you will have to reconfigure Wi-Fi using Valetudo.
+
+
+If Valetudo doesn't want to auto-detect the robot, and it was made around 08/2025 or later, Dreame might've switched to negative
+deviceIds, which are unexpected for miio. To solve that:
+
+1. Check `/mnt/private/ULI/factory/did.txt`. Is it a negative number? If not, this is not your problem
+2. `mount -o remount,rw /mnt/private`
+3. ! BACKUP ! the original did. `cp /mnt/private/ULI/factory/did.txt /mnt/private/ULI/factory/did_orig.txt && sync`
+4. Edit the file and make the did a positive number. `nano /mnt/private/ULI/factory/did.txt`, and save
+5. `rm /data/config/miio/device.conf`. It will be regenerated on next boot
+6. `reboot`
+7. Ensure that Valetudo has now auto-detected the correct implementation and can talk to the robot via the miio stack
+
+#### Details
+
+**Valetudo Binary**: `aarch64`
+**Secure Boot**: `yes`
+
+#### Rooting instructions
+
+- [Fastboot](https://valetudo.cloud/pages/installation/dreame.html#fastboot)
+
+### X40 Master <a id="dreame_x40master"></a>
+
+<img src="./img/robots/dreame/dreame_x40master.jpg" width="1300" height="325"/>
+
+The Dreame X40 Master is sold as:
+- Dreame X40 Master
+
+#### Comments
 
 Rooting is relatively easy. Usage of [the Dreame Breakout PCB](https://github.com/Hypfer/valetudo-dreameadapter) is highly recommended.
 All warranty seals stay intact.
+
+If the rooted robot does not want to stay connected to your Wi-Fi network, try this one-liner:
+`rm -f /data/config/miio/wifi.conf /data/config/wifi/wpa_supplicant.conf /var/run/wpa_supplicant.conf; dreame_release.na -c 9 -i ap_info -m " "; reboot`
+
+After that, you will have to reconfigure Wi-Fi using Valetudo.
+
+
+If Valetudo doesn't want to auto-detect the robot, and it was made around 08/2025 or later, Dreame might've switched to negative
+deviceIds, which are unexpected for miio. To solve that:
+
+1. Check `/mnt/private/ULI/factory/did.txt`. Is it a negative number? If not, this is not your problem
+2. `mount -o remount,rw /mnt/private`
+3. ! BACKUP ! the original did. `cp /mnt/private/ULI/factory/did.txt /mnt/private/ULI/factory/did_orig.txt && sync`
+4. Edit the file and make the did a positive number. `nano /mnt/private/ULI/factory/did.txt`, and save
+5. `rm /data/config/miio/device.conf`. It will be regenerated on next boot
+6. `reboot`
+7. Ensure that Valetudo has now auto-detected the correct implementation and can talk to the robot via the miio stack
 
 #### Details
 
@@ -605,9 +739,10 @@ All warranty seals stay intact.
 - [Fastboot](https://valetudo.cloud/pages/installation/dreame.html#fastboot)
 
 
+
 ## MOVA<a id="mova"></a>
 
-MOVA apparently was a rather short-lived sub-brand(?) of Dreame
+MOVA is a sub-brand(?) of Dreame
 
 ### MOVA Z500<a id="mova_z500"></a>
 
@@ -630,6 +765,57 @@ All warranty seals stay intact.
 
 - [UART](https://valetudo.cloud/pages/installation/dreame.html#uart)
 
+### S20 Ultra <a id="mova_s20ultra"></a>
+
+<img src="./img/robots/mova/mova_s20ultra.jpg" width="1300" height="325"/>
+
+The Mova S20 Ultra is sold as:
+- Mova S20 Ultra
+
+#### Comments
+
+Rooting is relatively easy. Usage of [the Dreame Breakout PCB](https://github.com/Hypfer/valetudo-dreameadapter) is highly recommended.
+All warranty seals stay intact.
+
+If the rooted robot does not want to stay connected to your Wi-Fi network, try this one-liner:
+`rm -f /data/config/miio/wifi.conf /data/config/wifi/wpa_supplicant.conf /var/run/wpa_supplicant.conf; dreame_release.na -c 9 -i ap_info -m " "; reboot`
+
+After that, you will have to reconfigure Wi-Fi using Valetudo.
+
+
+#### Details
+
+**Valetudo Binary**: `aarch64`
+**Secure Boot**: `yes`
+
+#### Rooting instructions
+
+- [Fastboot](https://valetudo.cloud/pages/installation/dreame.html#fastboot)
+
+### P10 Pro Ultra <a id="mova_p10proultra"></a>
+
+<img src="./img/robots/mova/mova_p10proultra.jpg" width="1300" height="325"/>
+
+The Mova P10 Pro Ultra is sold as:
+- Mova P10 Pro Ultra
+
+It is **NOT** sold as the P10 Ultra. That is a different robot.
+
+#### Comments
+
+Rooting is relatively easy. Usage of [the Dreame Breakout PCB](https://github.com/Hypfer/valetudo-dreameadapter) is highly recommended.
+All warranty seals stay intact.
+
+#### Details
+
+**Valetudo Binary**: `aarch64`
+**Secure Boot**: `yes`
+
+#### Rooting instructions
+
+- [Fastboot](https://valetudo.cloud/pages/installation/dreame.html#fastboot)
+
+
 
 ## Roborock<a id="roborock"></a>
 
@@ -647,10 +833,11 @@ Rooting is pretty easy, only requiring a Laptop. All warranty seals stay intact.
 
 Note that segment support is only available starting with firmware version 2008 so make sure you're up-to-date.
 
+Depending on your OpenSSH version, it might be necessary to add `-o HostKeyAlgorithms=+ssh-rsa` when trying to ssh into the rooted robot.
+
 #### Details
 
 **Valetudo Binary**: `armv7`
-**Secure Boot**: `no`
 
 #### Rooting instructions
 
@@ -674,7 +861,6 @@ Rooting requires full disassembly.
 #### Details
 
 **Valetudo Binary**: `armv7`
-**Secure Boot**: `no`
 
 #### Rooting instructions
 
@@ -699,7 +885,6 @@ Rooting requires full disassembly.
 #### Details
 
 **Valetudo Binary**: `armv7-lowmem`
-**Secure Boot**: `no`
 
 #### Rooting instructions
 
@@ -723,7 +908,6 @@ Rooting requires full disassembly.
 #### Details
 
 **Valetudo Binary**: `armv7`
-**Secure Boot**: `no`
 
 #### Rooting instructions
 
@@ -747,7 +931,6 @@ Rooting requires full disassembly.
 #### Details
 
 **Valetudo Binary**: `armv7-lowmem`
-**Secure Boot**: `no`
 
 #### Rooting instructions
 
@@ -768,7 +951,6 @@ Rooting requires full disassembly.
 #### Details
 
 **Valetudo Binary**: `armv7-lowmem`
-**Secure Boot**: `no`
 
 #### Rooting instructions
 
@@ -792,7 +974,6 @@ The VibraRise mop module makes disassembly of this robot difficult and easy to m
 #### Details
 
 **Valetudo Binary**: `armv7-lowmem`
-**Secure Boot**: `no`
 
 #### Rooting instructions
 
@@ -812,7 +993,6 @@ Rooting requires full disassembly.
 #### Details
 
 **Valetudo Binary**: `armv7-lowmem`
-**Secure Boot**: `no`
 
 #### Rooting instructions
 
@@ -828,12 +1008,25 @@ The Roborock Q7 Max is sold as:
 
 #### Comments
 
+**2024-09-28 Update**<br/>
+Starting with robots manufactured somewhere around Q2 2024, Roborock switched to SkyHigh-brand NAND on their newly produced Q7 Max.
+Unfortunately, after dumping quite a few days into it, we haven't been able to get the rooting procedure working with said NAND.
+
+Thus, if you pick up a factory new Q7 Max then chances are that it's not rootable anymore.
+The rooting procedure is still safe. It doesn't brick the robot; it just doesn't work.
+
+You'll only find out that it's SkyHigh NAND once you've disassembled the robot and thus can't return it to the seller anymore.
+Thus, right now your options are:
+- Buying a used Q7 Max
+- Buying from a seller that doesn't move much inventory still selling older Q7 Max
+- Buying something else that is supported by Valetudo
+
+
 Rooting requires full disassembly.
 
 #### Details
 
 **Valetudo Binary**: `armv7-lowmem`
-**Secure Boot**: `no`
 
 #### Rooting instructions
 
@@ -862,7 +1055,6 @@ It might be required to remove the battery but that can be done without touching
 #### Details
 
 **Valetudo Binary**: `armv7`
-**Secure Boot**: `no`
 
 #### Rooting instructions
 
@@ -884,12 +1076,137 @@ It might be required to remove the battery but that can be done without touching
 #### Details
 
 **Valetudo Binary**: `armv7`
-**Secure Boot**: `no`
 
 #### Rooting instructions
 
 - [ADB](https://github.com/Hypfer/valetudo-crl200s-root)
 
+
+## Eureka<a id="eureka"></a>
+
+Eureka is a brand of Midea.
+
+### Eureka J15 Max Ultra<a id="eureka_j15mu"></a>
+
+<img src="./img/robots/eureka/eureka_j15mu.jpg" width="1300" height="325"/>
+
+#### Comments
+
+Rooting is pretty easy, only requiring a Linux Laptop and a micro USB cable.
+All warranty seals stay intact.
+
+#### Details
+
+**Valetudo Binary**: `aarch64`
+
+#### Rooting instructions
+
+- [ADB](https://valetudo.cloud/pages/installation/midea.html#adb)
+
+### Eureka J15 Pro Ultra<a id="eureka_j15pu"></a>
+
+<img src="./img/robots/eureka/eureka_j15pu.jpg" width="1300" height="325"/>
+
+#### Comments
+
+Rooting is pretty easy, only requiring a Linux Laptop and a micro USB cable.
+All warranty seals stay intact.
+
+#### Details
+
+**Valetudo Binary**: `aarch64`
+
+#### Rooting instructions
+
+- [ADB](https://valetudo.cloud/pages/installation/midea.html#adb)
+
+### Eureka J15 Ultra<a id="eureka_j15u"></a>
+
+<img src="./img/robots/eureka/eureka_j15u.jpg" width="1300" height="325"/>
+
+#### Comments
+
+Rooting is pretty easy, only requiring a Linux Laptop and a micro USB cable.
+All warranty seals stay intact.
+
+
+#### Details
+
+**Valetudo Binary**: `aarch64`
+
+#### Rooting instructions
+
+- [ADB](https://valetudo.cloud/pages/installation/midea.html#adb)
+
+### Eureka J12 Ultra<a id="eureka_j12u"></a>
+
+<img src="./img/robots/eureka/eureka_j12u.jpg" width="1300" height="325"/>
+
+#### Comments
+
+Rooting is pretty easy, only requiring a Linux Laptop and a micro USB cable.
+All warranty seals stay intact.
+
+Due to the rather slow SoC, Valetudo startup after boot may take a few minutes.
+
+
+#### Details
+
+**Valetudo Binary**: `aarch64`
+
+#### Rooting instructions
+
+- [ADB](https://valetudo.cloud/pages/installation/midea.html#adb)
+
+### Eureka E20 Evo Plus<a id="eureka_e20evoplus"></a>
+
+<img src="img/robots/eureka/eureka_e20evoplus.jpg" width="1300" height="325"/>
+
+#### Comments
+
+⚠⚠⚠<br/>
+These robots seem to come with a Wi-Fi module on the compute module that has a very broken driver.<br/>
+mDNS does not work reliably on this robot, meaning that the Valetudo Companion app does not see it.<br/>
+⚠⚠⚠
+
+Rooting is pretty easy, only requiring a Linux Laptop and a micro USB cable.
+All warranty seals stay intact.
+
+Due to the rather slow SoC, Valetudo startup after boot may take a few minutes.
+
+
+#### Details
+
+**Valetudo Binary**: `aarch64`
+
+#### Rooting instructions
+
+- [ADB](https://valetudo.cloud/pages/installation/midea.html#adb)
+
+### Eureka E20 Plus<a id="eureka_e20plus"></a>
+
+<img src="./img/robots/eureka/eureka_e20plus.jpg" width="1300" height="325"/>
+
+#### Comments
+
+⚠⚠⚠<br/>
+These robots seem to come with a Wi-Fi module on the compute module that has a very broken driver.<br/>
+mDNS does not work reliably on this robot, meaning that the Valetudo Companion app does not see it.<br/>
+⚠⚠⚠
+
+Rooting is pretty easy, only requiring a Linux Laptop and a micro USB cable.
+All warranty seals stay intact.
+
+Due to the rather slow SoC, Valetudo startup after boot may take a few minutes.
+
+
+#### Details
+
+**Valetudo Binary**: `aarch64`
+
+#### Rooting instructions
+
+- [ADB](https://valetudo.cloud/pages/installation/midea.html#adb)
 
 ## Cecotec<a id="cecotec"></a>
 
@@ -906,7 +1223,7 @@ The Conga 3290 is actually a 3irobotix CRL-200S inside. It is sold as:
 #### Comments
 
 **Important note:**<br/>
-Because Congas use a non-miio cloud implementation, getting them to work with Valetudo means reflashing them to a Viomi V6.
+Because these use a non-miio cloud implementation, getting them to work with Valetudo means reflashing them to a Viomi V6.
 That's possible, because the hardware is exactly the same.
 
 Rooting is pretty easy, only requiring a Linux Laptop and a micro USB cable.<br/>
@@ -915,7 +1232,6 @@ It might be required to remove the battery but that can be done without touching
 #### Details
 
 **Valetudo Binary**: `armv7`
-**Secure Boot**: `no`
 
 #### Rooting instructions
 
@@ -931,7 +1247,7 @@ The Conga 3790 is actually a 3irobotix CRL-200S inside. It is sold as:
 #### Comments
 
 **Important note:**<br/>
-Because Congas use a non-miio cloud implementation, getting them to work with Valetudo means reflashing them to a Viomi V6.
+Because these use a non-miio cloud implementation, getting them to work with Valetudo means reflashing them to a Viomi V6.
 That's possible, because the hardware is exactly the same.
 
 Rooting is pretty easy, only requiring a Linux Laptop and a micro USB cable.<br/>
@@ -940,7 +1256,6 @@ It might be required to remove the battery but that can be done without touching
 #### Details
 
 **Valetudo Binary**: `armv7`
-**Secure Boot**: `no`
 
 #### Rooting instructions
 
@@ -962,7 +1277,7 @@ The Proscenic M6 Pro is actually a 3irobotix CRL-200S inside. It is sold as:
 #### Comments
 
 **Important note:**<br/>
-Because Proscenic robots use a non-miio cloud implementation, getting them to work with Valetudo means reflashing them to a Viomi V6.
+Because these robots use a non-miio cloud implementation, getting them to work with Valetudo means reflashing them to a Viomi V6.
 That's possible, because the hardware is exactly the same.
 
 Rooting is pretty easy, only requiring a Linux Laptop and a micro USB cable.<br/>
@@ -971,7 +1286,6 @@ It might be required to remove the battery but that can be done without touching
 #### Details
 
 **Valetudo Binary**: `armv7`
-**Secure Boot**: `no`
 
 #### Rooting instructions
 
@@ -993,7 +1307,7 @@ The Commodore CVR 200 is actually a 3irobotix CRL-200S inside. It is sold as:
 #### Comments
 
 **Important note:**<br/>
-Because Commodore robots use a non-miio cloud implementation, getting them to work with Valetudo means reflashing them to a Viomi V6.
+Because these robots use a non-miio cloud implementation, getting them to work with Valetudo means reflashing them to a Viomi V6.
 That's possible, because the hardware is exactly the same.
 
 Rooting is pretty easy, only requiring a Linux Laptop and a micro USB cable.<br/>
@@ -1002,7 +1316,35 @@ It might be required to remove the battery but that can be done without touching
 #### Details
 
 **Valetudo Binary**: `armv7`
-**Secure Boot**: `no`
+
+#### Rooting instructions
+
+- [ADB](https://github.com/Hypfer/valetudo-crl200s-root)
+
+## IKOHS<a id="ikohs"></a>
+
+I don't even know what this brand is. It doesn't seem to be around anymore?<br/>
+When it was around though, it of course released a branded CRL-200S.
+
+### IKOHS Netbot LS22<a id="ikohs_ls22"></a>
+
+<img src="./img/robots/ikohs/ikohs_ls22.jpg" width="1300" height="325"/>
+
+The IKOHS Netbot LS22 is actually a 3irobotix CRL-200S inside. It was sold as:
+- IKOHS Netbot LS22
+
+#### Comments
+
+**Important note:**<br/>
+Because these robots use a non-miio cloud implementation, getting them to work with Valetudo means reflashing them to a Viomi V6.
+That's possible, because the hardware is exactly the same.
+
+Rooting is pretty easy, only requiring a Linux Laptop and a micro USB cable.<br/>
+It might be required to remove the battery but that can be done without touching any warranty seals.
+
+#### Details
+
+**Valetudo Binary**: `armv7`
 
 #### Rooting instructions
 

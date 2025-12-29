@@ -4,7 +4,7 @@ import {
     Divider,
     FormControl,
     FormControlLabel,
-    Grid,
+    Grid2,
     IconButton,
     Input,
     InputAdornment,
@@ -74,8 +74,8 @@ const AuthSettings = (): React.ReactElement => {
                 label="HTTP Basic Auth enabled"
                 sx={{mb: 1}}
             />
-            <Grid container spacing={1} sx={{mb: 1}} direction="row">
-                <Grid item xs="auto" style={{flexGrow: 1}}>
+            <Grid2 container spacing={1} sx={{mb: 1}} direction="row">
+                <Grid2 size="grow" style={{flexGrow: 1}}>
                     <TextField
                         style={{width: "100%"}}
                         label="Username"
@@ -87,8 +87,8 @@ const AuthSettings = (): React.ReactElement => {
                             setConfigurationModified(true);
                         }}
                     />
-                </Grid>
-                <Grid item xs="auto" style={{flexGrow: 1}}>
+                </Grid2>
+                <Grid2 size="grow" style={{flexGrow: 1}}>
                     <FormControl style={{width: "100%"}} variant="standard">
                         <InputLabel htmlFor="standard-adornment-password">Password</InputLabel>
                         <Input
@@ -117,8 +117,8 @@ const AuthSettings = (): React.ReactElement => {
                                 setConfigurationModified(true);
                             }}/>
                     </FormControl>
-                </Grid>
-            </Grid>
+                </Grid2>
+            </Grid2>
 
             <InfoBox
                 boxShadow={5}
@@ -130,23 +130,20 @@ const AuthSettings = (): React.ReactElement => {
                 <Typography color="info">
                     Valetudo will by default try to block access from public-routable IP addresses
                     for your safety and convenience.
-                    <br/><br/>
+                    <br/>
                     If you want to allow external access to your Valetudo instance, consider using a VPN such as
                     WireGuard or OpenVPN to ensure the safety of your network.
                     <br/><br/>
                     If you don&apos;t want to use a VPN, usage of a reverse proxy in front of Valetudo and all of your
-                    other
-                    IoT things and network services is strongly recommended, as a recent version of a proper WebServer
-                    such as nginx, the Apache HTTP Server or similar will likely be more secure than Valetudo itself.
-                    <br/>
-                    Moreover, this approach will group all access logs to all services in a single place.
-                    It&apos;s also much easier to implement some kind of Single sign-on that way.
+                    other IoT and network services (e.g. Home Assistant, Jellyfin) is strongly recommended.
+                    A proper Webserver (e.g. nginx, Apache) is engineered and hardened to be public-facing.
+                    Additionally, a setup like that provides you with central access logs and the ability to implement a central auth.
                 </Typography>
             </InfoBox>
 
             <Divider sx={{mt: 1}} style={{marginBottom: "1rem"}}/>
-            <Grid container>
-                <Grid item style={{marginLeft: "auto"}}>
+            <Grid2 container>
+                <Grid2 style={{marginLeft: "auto"}}>
                     <LoadingButton
                         loading={configurationUpdating}
                         color="primary"
@@ -163,8 +160,8 @@ const AuthSettings = (): React.ReactElement => {
                     >
                         Save configuration
                     </LoadingButton>
-                </Grid>
-            </Grid>
+                </Grid2>
+            </Grid2>
         </>
     );
 };
@@ -172,7 +169,7 @@ const AuthSettings = (): React.ReactElement => {
 const AuthSettingsPage = (): React.ReactElement => {
     return (
         <PaperContainer>
-            <Grid container direction="row">
+            <Grid2 container direction="row">
                 <Box style={{width: "100%"}}>
                     <DetailPageHeaderRow
                         title="HTTP Basic Auth"
@@ -180,7 +177,7 @@ const AuthSettingsPage = (): React.ReactElement => {
                     />
                     <AuthSettings/>
                 </Box>
-            </Grid>
+            </Grid2>
         </PaperContainer>
     );
 };

@@ -10,8 +10,7 @@ import {
     FormControlLabel,
     FormGroup,
     FormHelperText,
-    FormLabel,
-    Grid,
+    Grid2,
     IconButton,
     Input,
     InputAdornment,
@@ -155,12 +154,11 @@ const MQTTStatusComponent: React.FunctionComponent<{
 
 
     return (
-        <Grid container alignItems="center" direction="column" style={{paddingBottom: "1rem"}}>
-            <Grid item style={{marginTop: "1rem"}}>
+        <Grid2 container alignItems="center" direction="column" style={{paddingBottom: "1rem"}}>
+            <Grid2 style={{marginTop: "1rem"}}>
                 {getIconForState()}
-            </Grid>
-            <Grid
-                item
+            </Grid2>
+            <Grid2
                 sx={{
                     maxWidth: "100% !important", //Why, MUI? Why?
                     wordWrap: "break-word",
@@ -169,15 +167,13 @@ const MQTTStatusComponent: React.FunctionComponent<{
                 }}
             >
                 {getContentForState()}
-            </Grid>
-            <Grid
-                item
+            </Grid2>
+            <Grid2
                 container
                 direction="row"
                 style={{marginTop: "1rem"}}
             >
-                <Grid
-                    item
+                <Grid2
                     style={{flexGrow: 1}}
                     p={1}
                 >
@@ -192,9 +188,8 @@ const MQTTStatusComponent: React.FunctionComponent<{
                             {getMessageStats()}
                         </CardContent>
                     </Card>
-                </Grid>
-                <Grid
-                    item
+                </Grid2>
+                <Grid2
                     style={{flexGrow: 1}}
                     p={1}
                 >
@@ -209,9 +204,9 @@ const MQTTStatusComponent: React.FunctionComponent<{
                             {getConnectionStats()}
                         </CardContent>
                     </Card>
-                </Grid>
-            </Grid>
-        </Grid>
+                </Grid2>
+            </Grid2>
+        </Grid2>
     );
 };
 
@@ -655,6 +650,40 @@ const MQTTConnectivity = (): React.ReactElement => {
                 </GroupBox>
             </GroupBox>
 
+            <GroupBox title="Integrations">
+                <GroupBox title="Home Assistant" checked={mqttConfiguration.interfaces.homeassistant.enabled}
+                    onChange={(e) => {
+                        modifyMQTTConfig(e.target.checked, ["interfaces", "homeassistant", "enabled"]);
+                    }}>
+                    <FormControl component="fieldset" variant="standard">
+                        <FormGroup sx={{marginLeft: "1rem"}}>
+                            <MQTTSwitch
+                                mqttConfiguration={mqttConfiguration}
+                                modifyMQTTConfig={modifyMQTTConfig}
+                                title="Delete autodiscovery metadata on shutdown"
+                                configPath={["interfaces", "homeassistant", "cleanAutoconfOnShutdown"]}
+                            />
+                        </FormGroup>
+                    </FormControl>
+                </GroupBox>
+
+                <GroupBox title="Homie" checked={mqttConfiguration.interfaces.homie.enabled}
+                    onChange={(e) => {
+                        modifyMQTTConfig(e.target.checked, ["interfaces", "homie", "enabled"]);
+                    }}>
+                    <FormControl component="fieldset" variant="standard">
+                        <FormGroup sx={{marginLeft: "1rem"}}>
+                            <MQTTSwitch
+                                mqttConfiguration={mqttConfiguration}
+                                modifyMQTTConfig={modifyMQTTConfig}
+                                title="Delete autodiscovery metadata on shutdown"
+                                configPath={["interfaces", "homie", "cleanAttributesOnShutdown"]}
+                            />
+                        </FormGroup>
+                    </FormControl>
+                </GroupBox>
+            </GroupBox>
+
             <GroupBox title="Customizations">
                 <MQTTInput
                     mqttConfiguration={mqttConfiguration}
@@ -743,53 +772,9 @@ const MQTTConnectivity = (): React.ReactElement => {
                 />
             </GroupBox>
 
-            <GroupBox title="Interfaces">
-                <GroupBox title="Homie" checked={mqttConfiguration.interfaces.homie.enabled}
-                    onChange={(e) => {
-                        modifyMQTTConfig(e.target.checked, ["interfaces", "homie", "enabled"]);
-                    }}>
-                    <FormControl component="fieldset" variant="standard">
-                        <FormLabel component="legend" sx={{userSelect: "none"}}>Select the options for Homie
-                            integration</FormLabel>
-                        <FormGroup>
-                            <MQTTSwitch
-                                mqttConfiguration={mqttConfiguration}
-                                modifyMQTTConfig={modifyMQTTConfig}
-                                title={"Provide autodiscovery for \"I Can't Believe It's Not Valetudo\" map"}
-                                configPath={["interfaces", "homie", "addICBINVMapProperty"]}
-                            />
-                            <MQTTSwitch
-                                mqttConfiguration={mqttConfiguration}
-                                modifyMQTTConfig={modifyMQTTConfig}
-                                title="Delete autodiscovery on shutdown"
-                                configPath={["interfaces", "homie", "cleanAttributesOnShutdown"]}
-                            />
-                        </FormGroup>
-                    </FormControl>
-                </GroupBox>
-
-                <GroupBox title="Home Assistant" checked={mqttConfiguration.interfaces.homeassistant.enabled}
-                    onChange={(e) => {
-                        modifyMQTTConfig(e.target.checked, ["interfaces", "homeassistant", "enabled"]);
-                    }}>
-                    <FormControl component="fieldset" variant="standard">
-                        <FormLabel component="legend" sx={{userSelect: "none"}}>Select the options for Home Assistant
-                            integration</FormLabel>
-                        <FormGroup>
-                            <MQTTSwitch
-                                mqttConfiguration={mqttConfiguration}
-                                modifyMQTTConfig={modifyMQTTConfig}
-                                title="Delete autodiscovery on shutdown"
-                                configPath={["interfaces", "homeassistant", "cleanAutoconfOnShutdown"]}
-                            />
-                        </FormGroup>
-                    </FormControl>
-                </GroupBox>
-            </GroupBox>
-
             {
                 mqttProperties.optionalExposableCapabilities.length > 0 &&
-                <GroupBox title="Optional exposable capabilities">
+                <GroupBox title="Optionally exposable capabilities">
                     <MQTTOptionalExposedCapabilitiesEditor
                         mqttConfiguration={mqttConfiguration}
                         modifyMQTTConfig={modifyMQTTConfig}
@@ -816,31 +801,19 @@ const MQTTConnectivity = (): React.ReactElement => {
                 }}
             >
                 <Typography color="info">
-                    Valetudo recommends the use of the Eclipse Mosquitto MQTT Broker, which is FOSS, has a
-                    tiny resource footprint and is part of basically every GNU/Linux distribution.
-                    You can also install it as a container via the container management solution of your choice.
-
-                    <br/><br/>
-                    If you&apos;re experiencing problems regarding MQTT, make sure to try Mosquitto since some other
-                    MQTT
-                    brokers only implement a subset of the MQTT spec, which often leads to issues when used with
-                    Valetudo.
-
-                    <br/><br/>
-                    If you&apos;re using Mosquitto but still experience issues, make sure that your ACLs (if any) are
-                    correct and
-                    you&apos;re also using the correct login credentials for those.
-                    Valetudo will not receive any feedback from the broker if publishing fails due to ACL restrictions
-                    as such feedback
-                    simply isn&apos;t part of the MQTT v3.1.1 spec. MQTT v5 fixes this issue but isn&apos;t widely
-                    available just yet.
+                    Valetudo is developed against and tested with the Mosquitto MQTT broker.<br/>
+                    In an ideal world, any broker would work, but in reality, some only implement subsets of the MQTT spec.
+                    Thus, if you&apos;re experiencing any issues, try Mosquitto.
+                    <br/>
+                    Another common issue are incorrectly configured ACLs. Because the MQTT v3 protocol does not provide
+                    feedback on ACL failures, Valetudo cannot report these, meaning that things fail silently.
                 </Typography>
             </InfoBox>
 
             <Divider sx={{mt: 1}} style={{marginBottom: "1rem"}}/>
 
-            <Grid container>
-                <Grid item style={{marginLeft: "auto"}}>
+            <Grid2 container>
+                <Grid2 style={{marginLeft: "auto"}}>
                     <LoadingButton
                         disabled={!configurationModified}
                         loading={mqttConfigurationUpdating}
@@ -855,8 +828,8 @@ const MQTTConnectivity = (): React.ReactElement => {
                     >
                         Save configuration
                     </LoadingButton>
-                </Grid>
-            </Grid>
+                </Grid2>
+            </Grid2>
         </>
     );
 };
@@ -869,7 +842,7 @@ const MQTTConnectivityPage = (): React.ReactElement => {
 
     return (
         <PaperContainer>
-            <Grid container direction="row">
+            <Grid2 container direction="row">
                 <Box style={{width: "100%"}}>
                     <DetailPageHeaderRow
                         title="MQTT Connectivity"
@@ -883,7 +856,7 @@ const MQTTConnectivityPage = (): React.ReactElement => {
                     />
                     <MQTTConnectivity/>
                 </Box>
-            </Grid>
+            </Grid2>
         </PaperContainer>
     );
 };

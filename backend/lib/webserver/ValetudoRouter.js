@@ -24,7 +24,8 @@ class ValetudoRouter {
 
         this.limiter = RateLimit.rateLimit({
             windowMs: 30*1000,
-            max: 30
+            max: 30,
+            keyGenerator: () => "global"
         });
 
         this.initRoutes();
@@ -272,7 +273,6 @@ class ValetudoRouter {
             interfaces: {
                 homie: {
                     enabled: obj.interfaces.homie.enabled,
-                    addICBINVMapProperty: obj.interfaces.homie.addICBINVMapProperty,
                     cleanAttributesOnShutdown: obj.interfaces.homie.cleanAttributesOnShutdown
                 },
                 homeassistant: {

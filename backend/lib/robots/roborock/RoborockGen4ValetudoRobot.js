@@ -99,11 +99,13 @@ class RoborockGen4ValetudoRobot extends RoborockValetudoRobot {
         super(Object.assign({}, options, {fanSpeeds: FAN_SPEEDS}));
 
         [
+            capabilities.RoborockCarpetModeControlCapability,
             capabilities.RoborockMultiMapPersistentMapControlCapability,
             capabilities.RoborockMultiMapMapResetCapability,
             capabilities.RoborockMapSegmentationCapability,
             capabilities.RoborockMapSegmentEditCapability,
-            capabilities.RoborockMapSegmentRenameCapability
+            capabilities.RoborockMapSegmentRenameCapability,
+            capabilities.RoborockHighResolutionManualControlCapability
         ].forEach(capability => {
             this.registerCapability(new capability({robot: this}));
         });

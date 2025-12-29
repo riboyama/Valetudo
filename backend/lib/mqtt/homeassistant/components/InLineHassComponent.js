@@ -20,6 +20,7 @@ class InLineHassComponent extends HassComponent {
 
         this.name = options.name;
         this.friendlyName = options.friendlyName;
+        this.componentType = options.componentType;
         this.autoconf = options.autoconf;
         this.topics = options.topics ?? null;
 
@@ -30,10 +31,14 @@ class InLineHassComponent extends HassComponent {
         }
     }
 
+    /**
+     * @public
+     * @return {{[key: string]: any}}
+     */
     getAutoconf() {
         return Object.assign(this.autoconf, {
             name: this.friendlyName,
-            object_id: `${this.hass.objectId}_${this.friendlyName.toLowerCase()}`
+            default_entity_id: `${this.componentType}.${this.hass.objectId}_${this.friendlyName.toLowerCase().replace(/ /g, "_")}`
         });
     }
 

@@ -1,10 +1,10 @@
+const crypto = require("crypto");
 const Logger = require("../../../Logger");
 const path = require("path/posix");
 const stateAttrs = require("../../../entities/state/attributes");
 const States = require("../../../entities/core/updater");
 const Tools = require("../../../utils/Tools");
 const UpdaterUtils = require("../UpdaterUtils");
-const uuid = require("uuid");
 const ValetudoUpdaterError = require("../ValetudoUpdaterError");
 const ValetudoUpdaterStep = require("./ValetudoUpdaterStep");
 
@@ -31,7 +31,7 @@ class ValetudoUpdaterCheckStep extends ValetudoUpdaterStep {
     async execute() {
         const requiresLowmem = Tools.IS_LOWMEM_HOST();
         const arch = this.architectures[process.arch];
-        const currentVersion = Tools.GET_VALETUDO_VERSION();
+        const currentVersion = this.updateProvider.getCurrentVersion();
 
         if (this.embedded !== true) {
             throw new ValetudoUpdaterError(
@@ -124,7 +124,7 @@ class ValetudoUpdaterCheckStep extends ValetudoUpdaterStep {
             changelog: releaseToDownload.release.changelog,
             downloadUrl: binaryToUse.downloadUrl,
             expectedHash: binaryToUse.sha256sum,
-            downloadPath: path.join(downloadPath, uuid.v4())
+            downloadPath: path.join(downloadPath, crypto.randomUUID())
         });
     }
 }

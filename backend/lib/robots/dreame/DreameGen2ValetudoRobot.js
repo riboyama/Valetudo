@@ -1,10 +1,12 @@
 const capabilities = require("./capabilities");
 
 const ConsumableMonitoringCapability = require("../../core/capabilities/ConsumableMonitoringCapability");
+const DreameConst = require("./DreameConst");
 const DreameMiotServices = require("./DreameMiotServices");
 const DreameUtils = require("./DreameUtils");
 const DreameValetudoRobot = require("./DreameValetudoRobot");
 const entities = require("../../entities");
+const ErrorStateValetudoEvent = require("../../valetudo_events/events/ErrorStateValetudoEvent");
 const LinuxTools = require("../../utils/LinuxTools");
 const Logger = require("../../Logger");
 const MopAttachmentReminderValetudoEvent = require("../../valetudo_events/events/MopAttachmentReminderValetudoEvent");
@@ -56,10 +58,14 @@ class DreameGen2ValetudoRobot extends DreameValetudoRobot {
             };
         });
 
-        this.mode = 0; //Idle
-        this.isCharging = false;
-        this.errorCode = "0";
-        this.stateNeedsUpdate = false;
+        this.ephemeralState = {
+            mode: 0, //Idle
+            taskStatus: undefined,
+            isCharging: false,
+            errorCode: "0",
+            mopDockState: undefined, // Might not be set depending on model
+            autoEmptyDockState: undefined // Might also not be set depending on model
+        };
 
         this.registerCapability(new capabilities.DreameBasicControlCapability({
             robot: this,
@@ -96,27 +102,6 @@ class DreameGen2ValetudoRobot extends DreameValetudoRobot {
             robot: this,
             siid: MIOT_SERVICES.AUDIO.SIID,
             aiid: MIOT_SERVICES.AUDIO.ACTIONS.LOCATE.AIID
-        }));
-
-        this.registerCapability(new capabilities.DreameMapSegmentationCapability({
-            robot: this,
-            miot_actions: {
-                start: {
-                    siid: MIOT_SERVICES.VACUUM_2.SIID,
-                    aiid: MIOT_SERVICES.VACUUM_2.ACTIONS.START.AIID
-                }
-            },
-            miot_properties: {
-                mode: {
-                    piid: MIOT_SERVICES.VACUUM_2.PROPERTIES.MODE.PIID
-                },
-                additionalCleanupParameters: {
-                    piid: MIOT_SERVICES.VACUUM_2.PROPERTIES.ADDITIONAL_CLEANUP_PROPERTIES.PIID
-                }
-            },
-            segmentCleaningModeId: 18,
-            iterationsSupported: 4,
-            customOrderSupported: true
         }));
 
         this.registerCapability(new capabilities.DreameMapSegmentEditCapability({
@@ -258,7 +243,7 @@ class DreameGen2ValetudoRobot extends DreameValetudoRobot {
 
         [
             capabilities.DreameVoicePackManagementCapability,
-            capabilities.DreameManualControlCapability,
+            capabilities.DreameHighResolutionManualControlCapability,
             capabilities.DreameDoNotDisturbCapability
         ].forEach(capability => {
             this.registerCapability(new capability({robot: this}));
@@ -304,7 +289,10 @@ class DreameGen2ValetudoRobot extends DreameValetudoRobot {
                         case MIOT_SERVICES.MOP.SIID:
                         case MIOT_SERVICES.SECONDARY_FILTER.SIID:
                         case MIOT_SERVICES.DETERGENT.SIID:
+                        case MIOT_SERVICES.WHEEL.SIID:
                         case MIOT_SERVICES.MOP_EXPANSION.SIID:
+                        case MIOT_SERVICES.MISC_STATES.SIID:
+                        case MIOT_SERVICES.AUTO_EMPTY_DOCK.SIID:
                             this.parseAndUpdateState([e]);
                             break;
                         case MIOT_SERVICES.DEVICE.SIID:
@@ -316,7 +304,6 @@ class DreameGen2ValetudoRobot extends DreameValetudoRobot {
                         case MIOT_SERVICES.PERSISTENT_MAPS.SIID:
                             //Intentionally ignored since we only poll that info when required and therefore don't care about updates
                             break;
-                        case MIOT_SERVICES.AUTO_EMPTY_DOCK.SIID:
                         case MIOT_SERVICES.TIMERS.SIID:
                         case MIOT_SERVICES.TOTAL_STATISTICS.SIID:
                             //Intentionally left blank (for now?)
@@ -365,10 +352,22 @@ class DreameGen2ValetudoRobot extends DreameValetudoRobot {
                 // ignore
                 return true;
             }
+            case "vendor_lic": {
+                // ignore
+                return true;
+            }
+            case "lwt": {
+                // ignore
+                return true;
+            }
             case "_sync.update_vacuum_mapinfo": {
                 // ignore
                 return true;
             }
+            case "dev_auth":
+                // actually replying to it leads to timeouts for reasons I do not care enough about to debug
+                // However, not replying at all will not make the firmware unhappy, so ignore it is
+                return true;
         }
 
         return false;
@@ -446,7 +445,10 @@ class DreameGen2ValetudoRobot extends DreameValetudoRobot {
             return;
         }
 
-        data.forEach(elem => {
+        let statusNeedsUpdate = false;
+        let dockStatusNeedsUpdate = false;
+
+        for (const elem of data) {
             switch (elem.siid) {
                 case MIOT_SERVICES.VACUUM_1.SIID: {
                     //intentionally left blank since there's nothing here that isn't also in VACUUM_2
@@ -461,21 +463,21 @@ class DreameGen2ValetudoRobot extends DreameValetudoRobot {
                 case MIOT_SERVICES.VACUUM_2.SIID: {
                     switch (elem.piid) {
                         case MIOT_SERVICES.VACUUM_2.PROPERTIES.MODE.PIID: {
-                            this.mode = elem.value;
+                            this.ephemeralState.mode = elem.value;
 
-                            this.stateNeedsUpdate = true;
+                            statusNeedsUpdate = true;
                             break;
                         }
                         case MIOT_SERVICES.VACUUM_2.PROPERTIES.ERROR_CODE.PIID: {
-                            this.errorCode = elem.value ?? "";
+                            this.ephemeralState.errorCode = elem.value ?? "";
 
-                            this.stateNeedsUpdate = true;
+                            statusNeedsUpdate = true;
                             break;
                         }
                         case MIOT_SERVICES.VACUUM_2.PROPERTIES.TASK_STATUS.PIID: {
-                            this.taskStatus = elem.value;
+                            this.ephemeralState.taskStatus = elem.value;
 
-                            this.stateNeedsUpdate = true;
+                            statusNeedsUpdate = true;
                             break;
                         }
                         case MIOT_SERVICES.VACUUM_2.PROPERTIES.FAN_SPEED.PIID: {
@@ -545,9 +547,8 @@ class DreameGen2ValetudoRobot extends DreameValetudoRobot {
                             break;
                         }
                         case MIOT_SERVICES.VACUUM_2.PROPERTIES.MOP_DOCK_STATUS.PIID: {
-                            this.state.upsertFirstMatchingAttribute(new entities.state.attributes.DockStatusStateAttribute({
-                                value: DreameValetudoRobot.MOP_DOCK_STATUS_MAP[elem.value]
-                            }));
+                            this.ephemeralState.mopDockState = elem.value;
+                            dockStatusNeedsUpdate = true;
 
                             break;
                         }
@@ -568,6 +569,49 @@ class DreameGen2ValetudoRobot extends DreameValetudoRobot {
                             }));
                             break;
                         }
+
+                        case DreameGen2ValetudoRobot.MIOT_SERVICES.VACUUM_2.PROPERTIES.MISC_TUNABLES.PIID: {
+                            const deserializedTunables = DreameUtils.DESERIALIZE_MISC_TUNABLES(elem.value);
+
+                            if (deserializedTunables.SmartHost > 0) {
+                                Logger.info("Disabling CleanGenius");
+                                // CleanGenius breaks most controls in Valetudo without any user feedback
+                                // Thus, we just automatically disable it instead of making every functionality aware of it
+
+                                this.helper.writeProperty(
+                                    DreameGen2ValetudoRobot.MIOT_SERVICES.VACUUM_2.SIID,
+                                    DreameGen2ValetudoRobot.MIOT_SERVICES.VACUUM_2.PROPERTIES.MISC_TUNABLES.PIID,
+                                    DreameUtils.SERIALIZE_MISC_TUNABLES_SINGLE_TUNABLE({
+                                        SmartHost: 0
+                                    })
+                                ).catch(e => {
+                                    Logger.warn("Error while disabling CleanGenius", e);
+                                });
+                            }
+
+                            if (deserializedTunables.FluctuationConfirmResult > 0) {
+                                if (deserializedTunables.FluctuationTestResult !== 6) { // 6 Means success
+                                    const errorString = DreameConst.WATER_HOOKUP_ERRORS[deserializedTunables.FluctuationTestResult];
+
+                                    this.valetudoEventStore.raise(new ErrorStateValetudoEvent({
+                                        message: `Water Hookup Error. ${errorString ?? "Unknown error " + deserializedTunables.FluctuationTestResult}`
+                                    }));
+                                }
+
+
+                                this.helper.writeProperty(
+                                    DreameGen2ValetudoRobot.MIOT_SERVICES.VACUUM_2.SIID,
+                                    DreameGen2ValetudoRobot.MIOT_SERVICES.VACUUM_2.PROPERTIES.MISC_TUNABLES.PIID,
+                                    DreameUtils.SERIALIZE_MISC_TUNABLES_SINGLE_TUNABLE({
+                                        FluctuationConfirmResult: 0
+                                    })
+                                ).catch(e => {
+                                    Logger.warn("Error while confirming water hookup test result", e);
+                                });
+                            }
+
+                            break;
+                        }
                     }
                     break;
                 }
@@ -584,8 +628,8 @@ class DreameGen2ValetudoRobot extends DreameValetudoRobot {
                                 2 = Not on Charger
                                 5 = Returning to Charger
                              */
-                            this.isCharging = elem.value === 1;
-                            this.stateNeedsUpdate = true;
+                            this.ephemeralState.isCharging = elem.value === 1;
+                            statusNeedsUpdate = true;
                             break;
                     }
                     break;
@@ -598,6 +642,7 @@ class DreameGen2ValetudoRobot extends DreameValetudoRobot {
                 case MIOT_SERVICES.MOP.SIID:
                 case MIOT_SERVICES.SECONDARY_FILTER.SIID:
                 case MIOT_SERVICES.DETERGENT.SIID:
+                case MIOT_SERVICES.WHEEL.SIID:
                     if (this.capabilities[ConsumableMonitoringCapability.TYPE]) {
                         this.capabilities[ConsumableMonitoringCapability.TYPE].parseConsumablesMessage(elem);
                     }
@@ -625,13 +670,28 @@ class DreameGen2ValetudoRobot extends DreameValetudoRobot {
                     }
                     break;
                 }
+                case MIOT_SERVICES.AUTO_EMPTY_DOCK.SIID: {
+                    switch (elem.piid) {
+                        case MIOT_SERVICES.AUTO_EMPTY_DOCK.PROPERTIES.STATE.PIID: {
+                            this.ephemeralState.autoEmptyDockState = elem.value;
+                            dockStatusNeedsUpdate = true;
+
+                            break;
+                        }
+                    }
+                    break;
+                }
+                case MIOT_SERVICES.MISC_STATES.SIID: {
+                    // Ignored for now
+                    break;
+                }
                 default:
                     Logger.warn("Unhandled property update", elem);
             }
-        });
+        }
 
 
-        if (this.stateNeedsUpdate === true) {
+        if (statusNeedsUpdate === true) {
             let newState;
             let statusValue;
             let statusFlag;
@@ -648,38 +708,44 @@ class DreameGen2ValetudoRobot extends DreameValetudoRobot {
                 
                 We can therefore simply filter the non-error codes and pick the first remaining element.
              */
-            if (this.errorCode.includes(",")) {
-                let errorArray = this.errorCode.split(",");
+            if (this.ephemeralState.errorCode.includes(",")) {
+                let errorArray = this.ephemeralState.errorCode.split(",");
 
-                errorArray = errorArray.filter(e => !["68", "114"].includes(e));
+                errorArray = errorArray.filter(e => !["68", "114", "122"].includes(e));
 
-                this.errorCode = errorArray[0] ?? "";
+                this.ephemeralState.errorCode = errorArray[0] ?? "";
             }
 
 
-            if (this.errorCode === "0" || this.errorCode === "") {
-                statusValue = DreameValetudoRobot.STATUS_MAP[this.mode]?.value ?? stateAttrs.StatusStateAttribute.VALUE.IDLE;
-                statusFlag = DreameValetudoRobot.STATUS_MAP[this.mode]?.flag;
+            if (this.ephemeralState.errorCode === "0" || this.ephemeralState.errorCode === "") {
+                statusValue = DreameValetudoRobot.STATUS_MAP[this.ephemeralState.mode]?.value ?? stateAttrs.StatusStateAttribute.VALUE.IDLE;
+                statusFlag = DreameValetudoRobot.STATUS_MAP[this.ephemeralState.mode]?.flag;
 
-                if (statusValue === stateAttrs.StatusStateAttribute.VALUE.DOCKED && this.taskStatus !== 0) {
+                if (statusValue === stateAttrs.StatusStateAttribute.VALUE.DOCKED && this.ephemeralState.taskStatus !== 0) {
                     // Robot has a pending task but is charging due to low battery and will resume when battery >= 80%
                     statusFlag = stateAttrs.StatusStateAttribute.FLAG.RESUMABLE;
-                } else if (statusValue === stateAttrs.StatusStateAttribute.VALUE.IDLE && statusFlag === undefined && this.isCharging === true) {
+                } else if (
+                    statusValue === stateAttrs.StatusStateAttribute.VALUE.IDLE &&
+                    statusFlag === undefined &&
+                    this.ephemeralState.isCharging === true
+                ) {
                     statusValue = stateAttrs.StatusStateAttribute.VALUE.DOCKED;
                 }
             } else {
-                if (this.errorCode === "68") { //Docked with mop still attached. For some reason, dreame decided to have this as an error
+                if (this.ephemeralState.errorCode === "68") { // Docked with mop still attached. For some reason, dreame decided to have this as an error
                     statusValue = stateAttrs.StatusStateAttribute.VALUE.DOCKED;
 
                     if (!this.hasCapability(capabilities.DreameMopDockDryManualTriggerCapability.TYPE)) {
                         this.valetudoEventStore.raise(new MopAttachmentReminderValetudoEvent({}));
                     }
-                } else if (this.errorCode === "114") { //Reminder message to regularly clean the mop dock
+                } else if (this.ephemeralState.errorCode === "114") { // Reminder message to regularly clean the mop dock
+                    statusValue = stateAttrs.StatusStateAttribute.VALUE.DOCKED;
+                } else if (this.ephemeralState.errorCode === "122") { // Apparently just an info that the water hookup (kit) worked successfully?
                     statusValue = stateAttrs.StatusStateAttribute.VALUE.DOCKED;
                 } else {
                     statusValue = stateAttrs.StatusStateAttribute.VALUE.ERROR;
 
-                    statusError = DreameValetudoRobot.MAP_ERROR_CODE(this.errorCode);
+                    statusError = DreameValetudoRobot.MAP_ERROR_CODE(this.ephemeralState.errorCode);
                 }
 
             }
@@ -696,8 +762,20 @@ class DreameGen2ValetudoRobot extends DreameValetudoRobot {
             if (newState.isActiveState) {
                 this.pollMap();
             }
+        }
 
-            this.stateNeedsUpdate = false;
+        if (dockStatusNeedsUpdate === true) {
+            const mappedMopDockState = DreameValetudoRobot.MOP_DOCK_STATUS_MAP[this.ephemeralState.mopDockState];
+            const mappedAutoEmptyDockState = DreameValetudoRobot.AUTO_EMPTY_DOCK_STATUS_MAP[this.ephemeralState.autoEmptyDockState];
+
+            let fullDockState = mappedMopDockState ?? stateAttrs.DockStatusStateAttribute.VALUE.IDLE;
+            if (mappedAutoEmptyDockState && mappedAutoEmptyDockState !== stateAttrs.DockStatusStateAttribute.VALUE.IDLE) {
+                fullDockState = mappedAutoEmptyDockState;
+            }
+
+            this.state.upsertFirstMatchingAttribute(new entities.state.attributes.DockStatusStateAttribute({
+                value: fullDockState
+            }));
         }
 
 

@@ -1,5 +1,5 @@
 /* eslint-disable */
-const MockRobot = require("../backend/lib/robots/mock/MockRobot");
+const MockValetudoRobot = require("../backend/lib/robots/mock/MockValetudoRobot");
 const RobotMqttHandle = require("../backend/lib/mqtt/handles/RobotMqttHandle");
 const MqttController = require("../backend/lib/mqtt/MqttController");
 const CapabilityMqttHandle = require("../backend/lib/mqtt/capabilities/CapabilityMqttHandle");
@@ -8,7 +8,7 @@ const RobotStateNodeMqttHandle = require("../backend/lib/mqtt/handles/RobotState
 const MapNodeMqttHandle = require("../backend/lib/mqtt/handles/MapNodeMqttHandle");
 const ValetudoEventsNodeMqttHandle = require("../backend/lib/mqtt/handles/ValetudoEventsNodeMqttHandle");
 const MockConsumableMonitoringCapability = require("../backend/lib/robots/mock/capabilities/MockConsumableMonitoringCapability");
-const ConsumableStateAttribute = require("../backend/lib/entities/state/attributes/ConsumableStateAttribute");
+const ValetudoConsumable = require("../backend/lib/entities/core/ValetudoConsumable");
 const ValetudoMapSegment = require("../backend/lib/entities/core/ValetudoMapSegment");
 const PropertyMqttHandle = require("../backend/lib/mqtt/handles/PropertyMqttHandle");
 const DataType = require("../backend/lib/mqtt/homie/DataType");
@@ -20,6 +20,7 @@ const path = require("path");
 const BatteryStateAttribute = require("../backend/lib/entities/state/attributes/BatteryStateAttribute");
 const AttachmentStateAttribute = require("../backend/lib/entities/state/attributes/AttachmentStateAttribute");
 const StatusStateAttribute = require("../backend/lib/entities/state/attributes/StatusStateAttribute");
+const DockStatusStateAttribute = require("../backend/lib/entities/state/attributes/DockStatusStateAttribute");
 const PresetSelectionStateAttribute = require("../backend/lib/entities/state/attributes/PresetSelectionStateAttribute");
 const Unit = require("../backend/lib/mqtt/common/Unit");
 const HomieCommonAttributes = require("../backend/lib/mqtt/homie/HomieCommonAttributes");
@@ -62,13 +63,6 @@ automatically discover your Valetudo instance.
     <br>
 </div>
 
-## Map
-
-Note that, in order to view the map provided over MQTT, you additionally need
-[I Can't Believe It's Not Valetudo](/pages/companion_apps/i_cant_believe_its_not_valetudo.html) to generate PNG maps.
-You can then configure it to serve the PNG map over HTTP for openHAB and other software, or install the
-[Lovelace Valetudo Card Map](/pages/companion_apps/lovelace_valetudo_map_card.html) for Home Assistant. 
-
 ## Custom integrations
 
 If you're planning to use one of the home automation platforms listed above, this is all you need to know to get started.
@@ -77,13 +71,7 @@ If you're instead planning to do something more custom, in this document you wil
 provided by this software. Values such as \`<TOPIC PREFIX>\` and \`<IDENTIFIER>\` are those configured in the MQTT
 settings page.
 
-` + jekyllAlert("tip", `It is recommended to leave Homie autodiscovery enabled, even if you're not planning to use it, if you want to develop
-custom integrations or access the MQTT topics directly: the Homie protocol is very readable and self-documenting.
-It will provide additional context and information on how to use specific APIs.
-
-
-Homie autodiscovery info is best viewed with something like [MQTT Explorer](https://mqtt-explorer.com/).
-`);
+`
 
 const fakeConfig = {
     onUpdate: (_) => {
@@ -148,23 +136,41 @@ ConsumableMonitoringCapabilityMqttHandle.prototype.genConsumableFriendlyName = (
 class FakeMqttController extends MqttController {
     // @ts-ignore
     constructor() {
-        const robot = new MockRobot({config: fakeConfig, valetudoEventStore: eventStore});
+        const robot = new MockValetudoRobot({config: fakeConfig, valetudoEventStore: eventStore});
 
         robot.capabilities[ConsumableMonitoringCapability.TYPE].getProperties = () => {
             return {
                 availableConsumables: [
                     {
                         type: "<CONSUMABLE-MINUTES>",
-                        subType: ConsumableStateAttribute.SUB_TYPE.NONE,
-                        unit: ConsumableStateAttribute.UNITS.MINUTES
+                        subType: ValetudoConsumable.SUB_TYPE.NONE,
+                        unit: ValetudoConsumable.UNITS.MINUTES
                     },
                     {
                         type: "<CONSUMABLE-PERCENT>",
-                        subType: ConsumableStateAttribute.SUB_TYPE.NONE,
-                        unit: ConsumableStateAttribute.UNITS.PERCENT
+                        subType: ValetudoConsumable.SUB_TYPE.NONE,
+                        unit: ValetudoConsumable.UNITS.PERCENT
                     },
                 ]
             };
+        }
+        robot.capabilities[ConsumableMonitoringCapability.TYPE].getConsumables = () => {
+            return [
+                new ValetudoConsumable({
+                    type: "<CONSUMABLE-MINUTES>",
+                    remaining: {
+                        value: 492,
+                        unit: ValetudoConsumable.UNITS.MINUTES
+                    }
+                }),
+                new ValetudoConsumable({
+                    type: "<CONSUMABLE-PERCENT>",
+                    remaining: {
+                        value: 59,
+                        unit: ValetudoConsumable.UNITS.PERCENT
+                    }
+                })
+            ]
         }
         
         robot.state.map.getSegments = () => {
@@ -237,6 +243,9 @@ class FakeMqttController extends MqttController {
                 value: StatusStateAttribute.VALUE.CLEANING,
                 flag: StatusStateAttribute.FLAG.SEGMENT
             }),
+            new DockStatusStateAttribute({
+                value: DockStatusStateAttribute.VALUE.IDLE,
+            }),
             new PresetSelectionStateAttribute({
                 type: PresetSelectionStateAttribute.TYPE.FAN_SPEED,
                 value: PresetSelectionStateAttribute.INTENSITY.MAX
@@ -244,20 +253,6 @@ class FakeMqttController extends MqttController {
             new PresetSelectionStateAttribute({
                 type: PresetSelectionStateAttribute.TYPE.WATER_GRADE,
                 value: PresetSelectionStateAttribute.INTENSITY.MIN
-            }),
-            new ConsumableStateAttribute({
-                type: "<CONSUMABLE-MINUTES>",
-                remaining: {
-                    value: 492,
-                    unit: ConsumableStateAttribute.UNITS.MINUTES
-                }
-            }),
-            new ConsumableStateAttribute({
-                type: "<CONSUMABLE-PERCENT>",
-                remaining: {
-                    value: 59,
-                    unit: ConsumableStateAttribute.UNITS.PERCENT
-                }
             })
         ];
         for (const attr of attributes) {
@@ -328,16 +323,24 @@ class FakeMqttController extends MqttController {
             this.addedConsumables.push(handle.friendlyName);
         }
 
-        let title = handle.friendlyName;
+        const baseTitle = handle.friendlyName;
+        let titleSuffix = "";
+
         if (handle instanceof CapabilityMqttHandle) {
-            title += ` (\`${handle.capability.getType()}\`)`;
+            titleSuffix = ` (\`${handle.capability.getType()}\`)`;
         } else if (handle instanceof RobotStateNodeMqttHandle) {
-            title += ` (\`${handle.getInterestingStatusAttributes()[0].attributeClass}\`)`;
+            titleSuffix = ` (\`${handle.getInterestingStatusAttributes()[0].attributeClass}\`)`;
         } else if (handle instanceof PropertyMqttHandle) {
-            title += ` (\`${handle.topicName}\`)`;
+            titleSuffix = ` (\`${handle.topicName}\`)`;
         }
-        const anchor = this.generateAnchor(title);
-        markdown += `${"#".repeat(markdownLevel)} ${title} <a id="${anchor}" />` + "\n\n";
+        
+        const unescapedFullTitle = baseTitle + titleSuffix;
+        const anchor = this.generateAnchor(unescapedFullTitle);
+        
+        const escapedBaseTitle = baseTitle.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const finalDisplayTitle = escapedBaseTitle + titleSuffix;
+
+        markdown += `${"#".repeat(markdownLevel)} ${finalDisplayTitle} <a id="${anchor}" />` + "\n\n";
 
         let homieType = "Handle";
         const attributes = [];
@@ -366,7 +369,7 @@ class FakeMqttController extends MqttController {
             attributes.push(`capability: [${handle.capability.getType()}](/pages/usage/capabilities-overview.html#${this.generateAnchor(handle.capability.getType())})`);
         }
         markdown += `*${attributes.join(", ")}*` + "\n\n";
-        
+
         if (handle.constructor.OPTIONAL === true) {
             markdown += `**Note:** This is an optional exposed capability handle and thus will only be available via MQTT if enabled in the Valetudo configuration.\n\n`;
         }
@@ -495,10 +498,16 @@ class FakeMqttController extends MqttController {
                 if (component.componentType === "vacuum") {
                     component.friendlyName = "Vacuum";
                 }
-                markdown += "- " + (component.friendlyName ?? component.name ?? component.componentId) +
-                    ` ([\`${component.componentType}.mqtt\`](https://www.home-assistant.io/integrations/${component.componentType}.mqtt/))\n`;
-                const compTitle = (component.friendlyName ?? component.name ?? component.componentId) + ` (\`${component.componentType}.mqtt\`)`;
-                hassComponentAnchors[compTitle] = anchor;
+
+                const componentBaseName = (component.friendlyName ?? component.name ?? component.componentId);
+                const componentSuffix = ` ([\`${component.componentType}.mqtt\`](https://www.home-assistant.io/integrations/${component.componentType}.mqtt/))`;
+                const componentIndexSuffix = ` (\`${component.componentType}.mqtt\`)`;
+                
+                const escapedComponentBaseName = componentBaseName.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                markdown += "- " + escapedComponentBaseName + componentSuffix + "\n";
+                
+                const hassComponentIndexKey = escapedComponentBaseName + componentIndexSuffix;
+                hassComponentAnchors[hassComponentIndexKey] = anchor;
             }
             markdown += "\n";
         }
@@ -520,7 +529,7 @@ class FakeMqttController extends MqttController {
         return {
             markdown: markdown,
             anchors: {
-                title: title,
+                title: finalDisplayTitle,
                 anchor: anchor,
                 children: childAnchors
             },
@@ -679,7 +688,6 @@ class FakeMqttController extends MqttController {
             "interfaces": {
                 "homie": {
                     "enabled": true,
-                    "addICBINVMapProperty": true,
                     "cleanAttributesOnShutdown": false
                 },
                 "homeassistant": {

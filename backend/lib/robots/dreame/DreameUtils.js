@@ -1,3 +1,5 @@
+const Logger = require("../../Logger");
+
 const UINT8_MASK = 0b00000000000000000000000011111111;
 
 /**
@@ -53,7 +55,19 @@ class DreameUtils {
      * @return {MISC_TUNABLES}
      */
     static DESERIALIZE_MISC_TUNABLES(str) {
-        const arr = JSON.parse(str);
+        let arr = [];
+        try {
+            arr = JSON.parse(str);
+
+            if (!Array.isArray(arr)) {
+                Logger.warn("Deserialized dreame misc tunables are not an array");
+
+                arr = [];
+            }
+        } catch (e) {
+            Logger.warn("Failed to deserialize dreame misc tunables.");
+        }
+
         const result = {};
 
         arr.forEach(elem => {
@@ -125,6 +139,7 @@ class DreameUtils {
  *
  * @property {number} [AutoDry]
  * @property {number} [CleanType]
+ * @property {number} [CleanRoute]
  * @property {number} [FillinLight]
  * @property {number} [FluctuationConfirmResult]
  * @property {number} [FluctuationTestResult]

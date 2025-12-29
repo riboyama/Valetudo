@@ -1,5 +1,5 @@
 module.exports = {
-    RoborockAutoEmptyDockAutoEmptyControlCapability: require("./RoborockAutoEmptyDockAutoEmptyControlCapability"),
+    RoborockAutoEmptyDockAutoEmptyIntervalControlCapability: require("./RoborockAutoEmptyDockAutoEmptyIntervalControlCapability"),
     RoborockAutoEmptyDockManualTriggerCapability: require("./RoborockAutoEmptyDockManualTriggerCapability"),
     RoborockBasicControlCapability: require("./RoborockBasicControlCapability"),
     RoborockCarpetModeControlCapability: require("./RoborockCarpetModeControlCapability"),
@@ -10,12 +10,15 @@ module.exports = {
     RoborockCurrentStatisticsCapability: require("./RoborockCurrentStatisticsCapability"),
     RoborockDoNotDisturbCapability: require("./RoborockDoNotDisturbCapability"),
     RoborockFanSpeedControlCapability: require("./RoborockFanSpeedControlCapability"),
+    RoborockFloorMaterialDirectionAwareNavigationControlCapability: require("./RoborockFloorMaterialDirectionAwareNavigationControlCapability"),
     RoborockGoToLocationCapability: require("./RoborockGoToLocationCapability"),
+    RoborockHighResolutionManualControlCapability: require("./RoborockHighResolutionManualControlCapability"),
     RoborockKeyLockCapability: require("./RoborockKeyLockCapability"),
     RoborockLocateCapability: require("./RoborockLocateCapability"),
     RoborockManualControlCapability: require("./RoborockManualControlCapability"),
     RoborockMapResetCapability: require("./RoborockMapResetCapability"),
     RoborockMapSegmentEditCapability: require("./RoborockMapSegmentEditCapability"),
+    RoborockMapSegmentMaterialControlCapability: require("./RoborockMapSegmentMaterialControlCapability"),
     RoborockMapSegmentRenameCapability: require("./RoborockMapSegmentRenameCapability"),
     RoborockMapSegmentSimpleCapability: require("./RoborockMapSegmentSimpleCapability"),
     RoborockMapSegmentationCapability: require("./RoborockMapSegmentationCapability"),
@@ -23,6 +26,7 @@ module.exports = {
     RoborockMappingPassCapability: require("./RoborockMappingPassCapability"),
     RoborockMopDockCleanManualTriggerCapability: require("./RoborockMopDockCleanManualTriggerCapability"),
     RoborockMopDockDryManualTriggerCapability: require("./RoborockMopDockDryManualTriggerCapability"),
+    RoborockMopDockMopAutoDryingControlCapability: require("./RoborockMopDockMopAutoDryingControlCapability"),
     RoborockMultiMapMapResetCapability: require("./RoborockMultiMapMapResetCapability"),
     RoborockMultiMapPersistentMapControlCapability: require("./RoborockMultiMapPersistentMapControlCapability"),
     RoborockObstacleAvoidanceControlCapability: require("./RoborockObstacleAvoidanceControlCapability"),
@@ -34,5 +38,5 @@ module.exports = {
     RoborockVoicePackManagementCapability: require("./RoborockVoicePackManagementCapability"),
     RoborockWaterUsageControlCapability: require("./RoborockWaterUsageControlCapability"),
     RoborockWifiConfigurationCapability: require("./RoborockWifiConfigurationCapability"),
-    RoborockZoneCleaningCapability: require("./RoborockZoneCleaningCapability")
+    RoborockZoneCleaningCapability: require("./RoborockZoneCleaningCapability"),
 };

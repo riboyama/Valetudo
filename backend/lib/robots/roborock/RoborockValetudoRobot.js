@@ -13,7 +13,6 @@ const MiioDummycloudNotConnectedError = require("../../miio/MiioDummycloudNotCon
 const MiioValetudoRobot = require("../MiioValetudoRobot");
 const PendingMapChangeValetudoEvent = require("../../valetudo_events/events/PendingMapChangeValetudoEvent");
 const ValetudoMap = require("../../entities/map/ValetudoMap");
-const ValetudoRobot = require("../../core/ValetudoRobot");
 const ValetudoRobotError = require("../../entities/core/ValetudoRobotError");
 const ValetudoSelectionPreset = require("../../entities/core/ValetudoSelectionPreset");
 
@@ -64,11 +63,9 @@ class RoborockValetudoRobot extends MiioValetudoRobot {
             capabilities.RoborockGoToLocationCapability,
             capabilities.RoborockLocateCapability,
             capabilities.RoborockDoNotDisturbCapability,
-            capabilities.RoborockCarpetModeControlCapability,
             capabilities.RoborockSpeakerVolumeControlCapability,
             capabilities.RoborockSpeakerTestCapability,
             capabilities.RoborockVoicePackManagementCapability,
-            capabilities.RoborockManualControlCapability,
             capabilities.RoborockTotalStatisticsCapability,
             capabilities.RoborockCurrentStatisticsCapability,
         ].forEach(capability => {
@@ -218,6 +215,8 @@ class RoborockValetudoRobot extends MiioValetudoRobot {
             case "event.fan_power_reduced":
             case "event.low_power_back": //If the robot is currently cleaning and the battery drops below 20% it drives home to charge
             case "event.start_with_water_box":
+            case "event.back_to_origin_fail":
+            case "event.back_to_origin_succ":
                 this.sendCloud({id: msg.id, "result":"ok"}).catch((err) => {
                     Logger.warn("Error while sending cloud ack", err);
                 });
@@ -486,7 +485,7 @@ class RoborockValetudoRobot extends MiioValetudoRobot {
                     repollSeconds += 1;
                 } else {
                     // This fixes the map not being available on boot for another 60 seconds
-                    repollSeconds = MiioValetudoRobot.MAP_POLLING_INTERVALS.ACTIVE;
+                    repollSeconds = RoborockValetudoRobot.MAP_POLLING_INTERVALS.ACTIVE;
                 }
             }
         }
@@ -597,7 +596,7 @@ class RoborockValetudoRobot extends MiioValetudoRobot {
             const firmwareVersion = this.getFirmwareVersion();
 
             if (firmwareVersion) {
-                ourProps[ValetudoRobot.WELL_KNOWN_PROPERTIES.FIRMWARE_VERSION] = firmwareVersion;
+                ourProps[RoborockValetudoRobot.WELL_KNOWN_PROPERTIES.FIRMWARE_VERSION] = firmwareVersion;
             }
         }
 
@@ -871,7 +870,12 @@ RoborockValetudoRobot.MAP_ERROR_CODE = (vendorErrorCode) => {
             parameters.subsystem = ValetudoRobotError.SUBSYSTEM.SENSORS;
             parameters.message = "Wall sensor dirty";
             break;
-        //27?
+        case 27:
+            parameters.severity.kind = ValetudoRobotError.SEVERITY_KIND.TRANSIENT;
+            parameters.severity.level = ValetudoRobotError.SEVERITY_LEVEL.CATASTROPHIC;
+            parameters.subsystem = ValetudoRobotError.SUBSYSTEM.ATTACHMENTS;
+            parameters.message = "Mop module stuck";
+            break;
         //28?
         case 29:
             parameters.severity.kind = ValetudoRobotError.SEVERITY_KIND.TRANSIENT;
@@ -891,6 +895,13 @@ RoborockValetudoRobot.MAP_ERROR_CODE = (vendorErrorCode) => {
             parameters.severity.level = ValetudoRobotError.SEVERITY_LEVEL.WARNING;
             parameters.subsystem = ValetudoRobotError.SUBSYSTEM.DOCK;
             parameters.message = "Auto-Empty Dock filter clogged";
+            break;
+
+        case 35:
+            parameters.severity.kind = ValetudoRobotError.SEVERITY_KIND.PERMANENT;
+            parameters.severity.level = ValetudoRobotError.SEVERITY_LEVEL.WARNING;
+            parameters.subsystem = ValetudoRobotError.SUBSYSTEM.DOCK;
+            parameters.message = "Auto-Empty Dock voltage abnormal";
             break;
 
         case 38:

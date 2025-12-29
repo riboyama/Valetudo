@@ -2,10 +2,9 @@ const fs = require("fs");
 const GithubValetudoNightlyUpdateProvider = require("./lib/update_provider/GithubValetudoNightlyUpdateProvider");
 const GithubValetudoUpdateProvider = require("./lib/update_provider/GithubValetudoUpdateProvider");
 const Logger = require("../Logger");
+const NullUpdateProvider = require("./lib/update_provider/NullUpdateProvider");
 const States = require("../entities/core/updater");
 const Steps = require("./lib/steps");
-const Tools = require("../utils/Tools");
-
 
 
 class Updater {
@@ -44,15 +43,6 @@ class Updater {
         clearTimeout(this.pendingCleanupTimeout);
         this.cleanupHandler();
 
-        if (updaterConfig.enabled === true) {
-            this.state = new States.ValetudoUpdaterIdleState({
-                currentVersion: Tools.GET_VALETUDO_VERSION()
-            });
-        } else {
-            this.state = new States.ValetudoUpdaterDisabledState({});
-        }
-
-
         switch (updaterConfig.updateProvider.type) {
             case GithubValetudoUpdateProvider.TYPE:
                 this.updateProvider = new GithubValetudoUpdateProvider();
@@ -61,7 +51,16 @@ class Updater {
                 this.updateProvider = new GithubValetudoNightlyUpdateProvider();
                 break;
             default:
-                throw new Error(`Invalid UpdateProvider ${updaterConfig.updateProvider.type}`);
+                Logger.error(`Invalid UpdateProvider ${updaterConfig.updateProvider.type}`);
+                this.updateProvider = new NullUpdateProvider();
+        }
+
+        if (updaterConfig.enabled === true) {
+            this.state = new States.ValetudoUpdaterIdleState({
+                currentVersion: this.updateProvider.getCurrentVersion()
+            });
+        } else {
+            this.state = new States.ValetudoUpdaterDisabledState({});
         }
     }
 
@@ -111,7 +110,6 @@ class Updater {
         if (!(this.state instanceof States.ValetudoUpdaterApprovalPendingState)) {
             throw new Error("Downloads can only be started when there's pending approval");
         }
-        const downloadPath = this.state.downloadPath;
         this.state.busy = true;
 
         const step = new Steps.ValetudoUpdaterDownloadStep({
@@ -139,11 +137,25 @@ class Updater {
         step.execute().then((state) => {
             this.state = state;
 
+            const downloadPath = state.downloadPath;
+            const downloadPathFd = state.downloadPathFd;
+
             this.cleanupHandler = () => {
-                fs.unlinkSync(downloadPath);
+                try {
+                    fs.closeSync(downloadPathFd);
+                } catch (e) {
+                    /* intentional */
+                }
+
+                try {
+                    fs.unlinkSync(downloadPath);
+                } catch (e) {
+                    /* intentional */
+                }
+
 
                 this.state = new States.ValetudoUpdaterIdleState({
-                    currentVersion: Tools.GET_VALETUDO_VERSION()
+                    currentVersion: this.updateProvider.getCurrentVersion()
                 });
 
                 this.cleanupHandler = () => {};
@@ -173,7 +185,8 @@ class Updater {
         this.state.busy = true;
 
         const step = new Steps.ValetudoUpdaterApplyStep({
-            downloadPath: this.state.downloadPath
+            downloadPath: this.state.downloadPath,
+            downloadPathFd: this.state.downloadPathFd
         });
 
         step.execute().catch(err => { //no .then() required as the system will reboot

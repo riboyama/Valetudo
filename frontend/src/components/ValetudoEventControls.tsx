@@ -1,5 +1,5 @@
 import React, {FunctionComponent} from "react";
-import {ValetudoEvent, ValetudoEventInteraction} from "../api";
+import {ConsumableSubType, ConsumableType, ValetudoEvent, ValetudoEventInteraction} from "../api";
 import {Button, ButtonGroup, Stack, styled, Typography} from "@mui/material";
 import {getConsumableName} from "../utils";
 import {formatRelative} from "date-fns";
@@ -47,7 +47,7 @@ const ConsumableDepletedEventControl: FunctionComponent<ValetudoEventRenderProps
                 <Stack>
                     <EventTimestamp timestamp={event.timestamp}/>
                     <Typography color={color} style={textStyle} sx={{mr: 1}}>
-                        The consumable <em>{getConsumableName(event.type, event.subType)}</em> is depleted
+                        The consumable <em>{getConsumableName(event.type as ConsumableType, event.subType as ConsumableSubType)}</em> is depleted
                     </Typography>
                 </Stack>
                 <Button
@@ -169,6 +169,36 @@ const CreateDismissableEventControl = (message: string) : FunctionComponent<Vale
     };
 };
 
+const MissingResourceEventControl: FunctionComponent<ValetudoEventRenderProps> =
+    ({event, interact}) => {
+        const color = event.processed ? "textSecondary" : "textPrimary";
+        const textStyle = event.processed ? {textDecoration: "line-through"} : {};
+
+        return (
+            <EventRow>
+                <Stack>
+                    <EventTimestamp timestamp={event.timestamp}/>
+                    <Typography color={color} style={textStyle} sx={{mr: 1}}>
+                        {event.message!}
+                    </Typography>
+                </Stack>
+                <Button
+                    size="small"
+                    variant={"contained"}
+                    disabled={event.processed}
+                    onClick={() => {
+                        interact({
+                            interaction: "ok"
+                        });
+                    }}
+                    color="warning"
+                >
+                    Dismiss
+                </Button>
+            </EventRow>
+        );
+    };
+
 const UnknownEventControl: FunctionComponent<ValetudoEventRenderProps> =
     ({event}) => {
         return (
@@ -184,5 +214,6 @@ export const eventControls: Record<string, React.ComponentType<ValetudoEventRend
     PendingMapChangeValetudoEvent: PendingMapChangeEventControl,
     DustBinFullValetudoEvent: CreateDismissableEventControl("The dust bin is full. Please empty it."),
     MopAttachmentReminderValetudoEvent: CreateDismissableEventControl("The mop is still attached to the robot."),
+    MissingResourceValetudoEvent: MissingResourceEventControl,
     Default: UnknownEventControl,
 };

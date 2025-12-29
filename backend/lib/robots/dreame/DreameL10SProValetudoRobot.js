@@ -35,7 +35,29 @@ class DreameL10SProValetudoRobot extends DreameGen2LidarValetudoRobot {
             )
         );
 
-        const QuirkFactory = new DreameQuirkFactory({
+        this.registerCapability(new capabilities.DreameMapSegmentationCapability({
+            robot: this,
+            miot_actions: {
+                start: {
+                    siid: DreameGen2ValetudoRobot.MIOT_SERVICES.VACUUM_2.SIID,
+                    aiid: DreameGen2ValetudoRobot.MIOT_SERVICES.VACUUM_2.ACTIONS.START.AIID
+                }
+            },
+            miot_properties: {
+                mode: {
+                    piid: DreameGen2ValetudoRobot.MIOT_SERVICES.VACUUM_2.PROPERTIES.MODE.PIID
+                },
+                additionalCleanupParameters: {
+                    piid: DreameGen2ValetudoRobot.MIOT_SERVICES.VACUUM_2.PROPERTIES.ADDITIONAL_CLEANUP_PROPERTIES.PIID
+                }
+            },
+            segmentCleaningModeId: 18,
+            iterationsSupported: 4,
+            customOrderSupported: true
+        }));
+
+
+        const quirkFactory = new DreameQuirkFactory({
             robot: this
         });
 
@@ -142,8 +164,8 @@ class DreameL10SProValetudoRobot extends DreameGen2LidarValetudoRobot {
         this.registerCapability(new QuirksCapability({
             robot: this,
             quirks: [
-                QuirkFactory.getQuirk(DreameQuirkFactory.KNOWN_QUIRKS.CARPET_MODE_SENSITIVITY),
-                QuirkFactory.getQuirk(DreameQuirkFactory.KNOWN_QUIRKS.TIGHT_MOP_PATTERN),
+                quirkFactory.getQuirk(DreameQuirkFactory.KNOWN_QUIRKS.CARPET_MODE_SENSITIVITY),
+                quirkFactory.getQuirk(DreameQuirkFactory.KNOWN_QUIRKS.TIGHT_MOP_PATTERN),
             ]
         }));
 

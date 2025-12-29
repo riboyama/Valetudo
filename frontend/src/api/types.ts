@@ -1,32 +1,40 @@
 import {AttachmentStateAttributeType} from "./RawRobotState";
 
 export enum Capability {
-    AutoEmptyDockAutoEmptyControl = "AutoEmptyDockAutoEmptyControlCapability",
     AutoEmptyDockAutoEmptyIntervalControl = "AutoEmptyDockAutoEmptyIntervalControlCapability",
     AutoEmptyDockManualTrigger = "AutoEmptyDockManualTriggerCapability",
     BasicControl = "BasicControlCapability",
     CarpetModeControl = "CarpetModeControlCapability",
     CarpetSensorModeControl = "CarpetSensorModeControlCapability",
+    CameraLightControl = "CameraLightControlCapability",
     CollisionAvoidantNavigation = "CollisionAvoidantNavigationControlCapability",
     CombinedVirtualRestrictions = "CombinedVirtualRestrictionsCapability",
     ConsumableMonitoring = "ConsumableMonitoringCapability",
     CurrentStatistics = "CurrentStatisticsCapability",
     DoNotDisturb = "DoNotDisturbCapability",
     FanSpeedControl = "FanSpeedControlCapability",
+    FloorMaterialDirectionAwareNavigationControl = "FloorMaterialDirectionAwareNavigationControlCapability",
     GoToLocation = "GoToLocationCapability",
     KeyLock = "KeyLockCapability",
     Locate = "LocateCapability",
     ManualControl = "ManualControlCapability",
+    HighResolutionManualControl = "HighResolutionManualControlCapability",
     MapReset = "MapResetCapability",
     MapSegmentEdit = "MapSegmentEditCapability",
     MapSegmentRename = "MapSegmentRenameCapability",
+    MapSegmentMaterialControl = "MapSegmentMaterialControlCapability",
     MapSegmentation = "MapSegmentationCapability",
     MapSnapshot = "MapSnapshotCapability",
     MappingPass = "MappingPassCapability",
+    MopDockMopWashTemperatureControl = "MopDockMopWashTemperatureControlCapability",
     ObstacleAvoidanceControl = "ObstacleAvoidanceControlCapability",
     PetObstacleAvoidanceControl = "PetObstacleAvoidanceControlCapability",
+    MopExtensionControl = "MopExtensionControlCapability",
+    MopTwistControl = "MopTwistControlCapability",
+    MopExtensionFurnitureLegHandlingControl = "MopExtensionFurnitureLegHandlingControlCapability",
     MopDockCleanManualTrigger = "MopDockCleanManualTriggerCapability",
     MopDockDryManualTrigger = "MopDockDryManualTriggerCapability",
+    MopDockMopAutoDryingControl = "MopDockMopAutoDryingControlCapability",
     OperationModeControl = "OperationModeControlCapability",
     PersistentMapControl = "PersistentMapControlCapability",
     SpeakerTest = "SpeakerTestCapability",
@@ -144,6 +152,15 @@ export interface SystemRuntimeInfo {
     env: Record<string, string>
 }
 
+export enum MapSegmentMaterial {
+    Generic = "generic",
+    Tile = "tile",
+    Wood = "wood",
+    WoodHorizontal = "wood_horizontal",
+    WoodVertical = "wood_vertical"
+}
+
+
 export interface MapSegmentationActionRequestParameters {
     segment_ids: string[];
     iterations?: number;
@@ -166,8 +183,17 @@ export interface MapSegmentRenameRequestParameters {
     name: string;
 }
 
-export type ConsumableType = "filter" | "brush" | "sensor" | "mop" | "detergent";
-export type ConsumableSubType = "none" | "all" | "main" | "secondary" | "side_left" | "side_right";
+export interface MapSegmentMaterialControlRequestParameters {
+    segment_id: string;
+    material: MapSegmentMaterial;
+}
+
+export interface MapSegmentMaterialControlProperties {
+    supportedMaterials: Array<MapSegmentMaterial>;
+}
+
+export type ConsumableType = "filter" | "brush" | "mop" | "detergent" | "bin" | "cleaning" ;
+export type ConsumableSubType = "none" | "all" | "main" | "secondary" | "side_left" | "side_right" | "dock" | "sensor" | "wheel";
 export type ConsumableUnit = "minutes" | "percent";
 
 export interface ConsumableState {
@@ -266,7 +292,6 @@ export interface MQTTConfiguration {
     interfaces: {
         homie: {
             enabled: boolean;
-            addICBINVMapProperty: boolean;
             cleanAttributesOnShutdown: boolean;
         };
         homeassistant: {
@@ -472,6 +497,16 @@ export interface ManualControlInteraction {
     movementCommand?: ManualControlCommand;
 }
 
+export interface ValetudoManualMovementVector {
+    velocity: number;
+    angle: number;
+}
+
+export interface HighResolutionManualControlInteraction {
+    action: ManualControlAction;
+    vector?: ValetudoManualMovementVector;
+}
+
 export enum ValetudoRestrictedZoneType {
     Regular = "regular",
     Mop = "mop"
@@ -567,7 +602,7 @@ export interface CarpetSensorModeControlProperties {
     supportedModes: Array<CarpetSensorMode>
 }
 
-export type AutoEmptyDockAutoEmptyInterval = "infrequent" | "normal" | "frequent" ;
+export type AutoEmptyDockAutoEmptyInterval = "off" | "infrequent" | "normal" | "frequent" ;
 
 export interface AutoEmptyDockAutoEmptyIntervalPayload {
     interval: AutoEmptyDockAutoEmptyInterval
@@ -581,4 +616,14 @@ export interface ObstacleImagesProperties {
         width: number,
         height: number
     }
+}
+
+export type MopDockMopWashTemperature = "cold" | "warm" | "hot" | "scalding" | "boiling";
+
+export interface MopDockMopWashTemperaturePayload {
+    temperature: MopDockMopWashTemperature;
+}
+
+export interface MopDockMopWashTemperatureProperties {
+    supportedTemperatures: Array<MopDockMopWashTemperature>;
 }

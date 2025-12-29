@@ -5,6 +5,7 @@ const LinuxWifiScanCapability = require("../common/linuxCapabilities/LinuxWifiSc
 const miioCapabilities = require("../common/miioCapabilities");
 
 const DreameMapParser = require("./DreameMapParser");
+const DreameMiotHelper = require("./DreameMiotHelper");
 
 const AttachmentStateAttribute = require("../../entities/state/attributes/AttachmentStateAttribute");
 const AttributeSubscriber = require("../../entities/AttributeSubscriber");
@@ -16,7 +17,6 @@ const MiioValetudoRobot = require("../MiioValetudoRobot");
 const MopAttachmentReminderValetudoEvent = require("../../valetudo_events/events/MopAttachmentReminderValetudoEvent");
 const PendingMapChangeValetudoEvent = require("../../valetudo_events/events/PendingMapChangeValetudoEvent");
 const ValetudoMap = require("../../entities/map/ValetudoMap");
-const ValetudoRobot = require("../../core/ValetudoRobot");
 const ValetudoRobotError = require("../../entities/core/ValetudoRobotError");
 
 const stateAttrs = entities.state.attributes;
@@ -40,6 +40,7 @@ class DreameValetudoRobot extends MiioValetudoRobot {
      */
     constructor(options) {
         super(options);
+        this.helper = new DreameMiotHelper({robot: this});
 
 
         this.operationModes = options.operationModes ?? {};
@@ -282,7 +283,7 @@ class DreameValetudoRobot extends MiioValetudoRobot {
             const firmwareVersion = this.getFirmwareVersion();
 
             if (firmwareVersion.valid) {
-                ourProps[ValetudoRobot.WELL_KNOWN_PROPERTIES.FIRMWARE_VERSION] = firmwareVersion.arm;
+                ourProps[DreameValetudoRobot.WELL_KNOWN_PROPERTIES.FIRMWARE_VERSION] = firmwareVersion.arm;
             }
         }
 
@@ -394,6 +395,12 @@ DreameValetudoRobot.WATER_GRADES = Object.freeze({
     [stateAttrs.PresetSelectionStateAttribute.INTENSITY.LOW]: 1,
     [stateAttrs.PresetSelectionStateAttribute.INTENSITY.MEDIUM]: 2,
     [stateAttrs.PresetSelectionStateAttribute.INTENSITY.HIGH]: 3,
+});
+
+DreameValetudoRobot.AUTO_EMPTY_DOCK_STATUS_MAP = Object.freeze({
+    0: stateAttrs.DockStatusStateAttribute.VALUE.IDLE,
+    1: stateAttrs.DockStatusStateAttribute.VALUE.EMPTYING,
+    2: stateAttrs.DockStatusStateAttribute.VALUE.IDLE, // DND
 });
 
 DreameValetudoRobot.MOP_DOCK_STATUS_MAP = Object.freeze({
@@ -850,6 +857,26 @@ DreameValetudoRobot.MAP_ERROR_CODE = (vendorErrorCode) => {
             parameters.severity.level = ValetudoRobotError.SEVERITY_LEVEL.CATASTROPHIC;
             parameters.subsystem = ValetudoRobotError.SUBSYSTEM.MOTORS;
             parameters.message = "Mop motor current abnormal";
+            break;
+
+        case "74":
+            parameters.severity.kind = ValetudoRobotError.SEVERITY_KIND.TRANSIENT;
+            parameters.severity.level = ValetudoRobotError.SEVERITY_LEVEL.ERROR;
+            parameters.subsystem = ValetudoRobotError.SUBSYSTEM.ATTACHMENTS;
+            parameters.message = "Failed to attach mop pads";
+            break;
+
+        case "91":
+            parameters.severity.kind = ValetudoRobotError.SEVERITY_KIND.TRANSIENT;
+            parameters.severity.level = ValetudoRobotError.SEVERITY_LEVEL.WARNING;
+            parameters.subsystem = ValetudoRobotError.SUBSYSTEM.NAVIGATION;
+            parameters.message = "Cannot reach target";
+            break;
+        case "96":
+            parameters.severity.kind = ValetudoRobotError.SEVERITY_KIND.TRANSIENT;
+            parameters.severity.level = ValetudoRobotError.SEVERITY_LEVEL.WARNING;
+            parameters.subsystem = ValetudoRobotError.SUBSYSTEM.NAVIGATION;
+            parameters.message = "Cannot reach target";
             break;
 
 

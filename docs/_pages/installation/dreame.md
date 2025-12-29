@@ -65,6 +65,14 @@ I will send you pictures of sad kittens. You have been warned.
 
 #### Phase 0: Preparation
 
+<div class="alert alert-note" role="alert">
+  <p>
+    Before you do anything, if you've ever used the robot with the vendor app, make sure to factory-reset it first.
+    <br/>
+    For that, with the robot turned on, press and hold the button labelled "reset" next to the Wi-Fi LED until it talks to you.
+</p>
+</div>
+
 To prepare the USB Stick used for rooting, just download [this zip archive](./res/dreame_uart_root_img.zip),
 unzip it and flash the contained `.img` to the USB stick using e.g. `dd` or other tooling used to flash images to block devices.
 
@@ -122,9 +130,12 @@ To get the password, use the following [Calculator](https://gchq.github.io/Cyber
 or enter the full SN (all uppercase) into this shell command
 `echo -n "P20290000US00000ZM" | md5sum | base64`
 
+If your Dreame is Xiaomi-branded, your SN might instead look similar to `41717/BFACWF3Z000000`.<br/>
+In that case, use the full string including the `41717/` part as the SN.
+
 #### Phase 3: Installing the patched Firmware + Valetudo
 
-Once logged in, build a patched firmware image for manual installation via the [Dustbuilder](https://builder.dontvacuum.me).
+Once logged in, build a patched firmware image for manual installation via the <a href="https://builder.dontvacuum.me" rel="noopener" target="_blank">Dustbuilder</a>.
 **Make sure that both `Prepackage valetudo` and `Patch DNS` are selected before clicking on `Create Job`.**
 You will receive an email once it's built. Download the `tar.gz` file from the link in that mail to your laptop.
 
@@ -208,8 +219,8 @@ Now continue with the [getting started guide](https://valetudo.cloud/pages/gener
 This method abuses the proprietary Allwinner LiveSuit tool for Linux with somewhat hacked LiveSuit images.
 Because of that, it's a bit janky. You will also need some advanced linux knowledge.
 
-This Guide assumes that you have just installed a fresh copy of Debian Bookworm with some kind of GUI (e.g. KDE).<br/>
-Please use a native install for this, as VMs will usually be troublesome.
+This Guide assumes that you have booted a fresh copy of Debian 13 Live with some kind of GUI (e.g. KDE).<br/>
+Please use a native environment for this, as VMs will usually be troublesome.
 
 <div class="alert alert-important" role="alert">
   <p>
@@ -230,6 +241,14 @@ out security features that would otherwise prevent the root.
 3. Lastly, in phase 3, we install Valetudo to that rooted firmware.
 
 ### Phase 0: Preparation
+
+<div class="alert alert-note" role="alert">
+  <p>
+    Before you do anything, if you've ever used the robot with the vendor app, make sure to factory-reset it first.
+    <br/>
+    For that, with the robot turned on, press and hold the button labelled "reset" next to the Wi-Fi LED until it talks to you.
+</p>
+</div>
 
 #### Software preparation
 
@@ -287,8 +306,8 @@ As described in the high-level overview, we start by doing some reconnaissance o
 #### Get the config value
 
 Download the latest stage1 dustbuilder livesuit image for your robot:
-- <a href="https://builder.dontvacuum.me/nextgen/dust-livesuit-mr813-ddr4.img" rel="noopener" target="_blank">L10s Ultra, L10s Pro Ultra Heat, X40</a>
 - <a href="https://builder.dontvacuum.me/nextgen/dust-livesuit-mr813-ddr3.img" rel="noopener" target="_blank">D10s Pro/Plus, W10 Pro</a>
+- <a href="https://builder.dontvacuum.me/nextgen/dust-livesuit-mr813-ddr4.img" rel="noopener" target="_blank">Everything else</a>
 
 and select that as the Image in the LiveSuit tool.
 
@@ -302,6 +321,7 @@ Follow these steps to enter fastboot:
 Plug the Breakout PCB into your robot. Make sure that the USB OTG ID Jumper is **NOT** set and plug a cable into
 the Micro USB port.
 
+<img src="./img/dreame_breakout_breakout_fel.jpg" alt="Dreame Breakout PCB connected" width="1200" height="700">
 <img src="./img/dreame_breakout_fel.jpg" alt="Dreame Breakout PCB connected" width="1200" height="700">
 
 1. Press and hold the button on the PCB.
@@ -390,6 +410,9 @@ As you can see in the example, it being only 399MB is okay. It should be _around
 Then, finally, run `fastboot oem stage2` and `fastboot get_staged dustx102.bin`
 
 ```
+root@T420:/home/hypfer# fastboot oem stage2 
+                                                   OKAY [  0.000s] 
+Finished. Total time: 0.000s 
 root@T420:/home/hypfer# fastboot get_staged dustx102.bin 
 Uploading 'dustx102.bin'                           OKAY [ 37.992s] 
 Finished. Total time: 37.992s 
@@ -457,6 +480,7 @@ Here are the steps again:
 Plug the Breakout PCB into your robot. Make sure that the USB OTG ID Jumper is **NOT** set and plug a cable into
 the Micro USB port.
 
+<img src="./img/dreame_breakout_breakout_fel.jpg" alt="Dreame Breakout PCB connected" width="1200" height="700">
 <img src="./img/dreame_breakout_fel.jpg" alt="Dreame Breakout PCB connected" width="1200" height="700">
 
 1. Press and hold the button on the PCB.
@@ -467,7 +491,7 @@ the Micro USB port.
 The button LEDs of the robot should now be pulsing. With that, plug the USB cable into your computer.
 LiveSuit should now display this message box:
 
-<img src="./img/dreame_livesuit_msgbox.png" alt="Dreame Livesuit Msgbox" width="806" height="622">
+<img src="./img/dreame_livesuit_msgbox_2.png" alt="Dreame Livesuit Msgbox" width="806" height="622">
 
 Click no. This should now have booted your robot into Fastboot.
 To verify that, open a new terminal and run `fastboot devices`.
@@ -503,9 +527,7 @@ You can just ignore that one.<br/>
 **BUT** as with the commands above, fastboot should confirm all of this with `OKAY`. If it doesn't, **DO NOT PROCEED**.
 
 
-Finally, run `fastboot reboot`. If it boots up normally, you have successfully rooted your robot.<br/>
-If it doesn't, please open a VAERS ticket at <a href="https://vaers.dontvacuum.me" rel="noopener" target="_blank">vaers.dontvacuum.me</a>
-or ask for support in the support groups.
+Finally, run `fastboot reboot`. If it boots up normally, you have successfully rooted your robot.
 
 ### Phase 3: Install Valetudo
 
@@ -519,8 +541,10 @@ Once you know that, download the latest matching Valetudo binary to your laptop:
 With the Valetudo binary downloaded, head over to <a href="https://github.com/Hypfer/valetudo-helper-httpbridge" rel="noopener" target="_blank">https://github.com/Hypfer/valetudo-helper-httpbridge</a>
 and download a matching binary for your laptops operating system.
 
-Now, connect the laptop to the Wi-Fi Access Point of the robot.<br/>
-You should be able to connect to it via ssh. Do that now and keep the shell open: `ssh -i ./your/keyfile root@192.168.5.1`
+Now, connect the laptop to the Wi-Fi Access Point of the robot. If you can't see the robots Wi-Fi AP to connect to, it might have disabled itself.
+In that case, press and hold the two outer buttons until it starts talking to you.
+
+Once connected via Wi-Fi, you should be able to connect to it using ssh. Do that now and keep the shell open: `ssh -i ./your/keyfile root@192.168.5.1`
 
 The next step is to start the utility webserver. Open a new terminal and run the `./valetudo-helper-httpbridge-amd64` binary **Don't close that window until you're done.**
 The server will create a new `www` directory right next to itself as well as print out a few sample commands explaining how to download from and upload to it.

@@ -617,7 +617,7 @@ module.exports = {
                 STATUS: {
                     PIID: 3 //Whether or not it's currently able to execute the empty action?
                 },
-                ACTION_STATUS: {
+                STATE: {
                     PIID: 5 //1 = currently cleaning, 0 = not currently cleaning
                 }
             },
@@ -638,8 +638,44 @@ module.exports = {
                 },
                 HIGH_RES_MOP_DOCK_HEATER: {
                     PIID: 8
+                },
+                SIDE_BRUSH_ON_CARPET: {
+                    PIID: 29
                 }
             }
-        }
+        },
+        MISC_STATES: {
+            SIID: 27,
+            PROPERTIES: {
+                DOCK_FRESHWATER_TANK_ATTACHMENT: {
+                    PIID: 1
+                },
+                DOCK_WASTEWATER_TANK_ATTACHMENT: {
+                    PIID: 2
+                },
+                DOCK_DUSTBAG_ATTACHMENT: {
+                    PIID: 3
+                },
+                DOCK_DETERGENT_ATTACHMENT: {
+                    PIID: 4
+                }
+            }
+        },
+        WHEEL: {
+            SIID: 30,
+            PROPERTIES: {
+                TIME_LEFT: { //Hours
+                    PIID: 1
+                },
+                PERCENT_LEFT: {
+                    PIID: 2
+                }
+            },
+            ACTIONS: {
+                RESET: {
+                    AIID: 1
+                }
+            }
+        },
     })
 };

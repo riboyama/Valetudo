@@ -8,7 +8,7 @@ import {
     DialogTitle,
     Divider,
     FormControl,
-    Grid,
+    Grid2,
     IconButton,
     Input,
     InputAdornment,
@@ -146,12 +146,11 @@ const WifiStatusComponent: React.FunctionComponent<{
 
 
     return (
-        <Grid container alignItems="center" direction="column" style={{paddingBottom: "1rem"}}>
-            <Grid item style={{marginTop: "1rem"}}>
+        <Grid2 container alignItems="center" direction="column" style={{paddingBottom: "1rem"}}>
+            <Grid2 style={{marginTop: "1rem"}}>
                 {getIconForState()}
-            </Grid>
-            <Grid
-                item
+            </Grid2>
+            <Grid2
                 sx={{
                     maxWidth: "100% !important", //Why, MUI? Why?
                     wordWrap: "break-word",
@@ -160,8 +159,8 @@ const WifiStatusComponent: React.FunctionComponent<{
                 }}
             >
                 {getContentForState()}
-            </Grid>
-        </Grid>
+            </Grid2>
+        </Grid2>
     );
 };
 
@@ -219,8 +218,8 @@ const WifiConnectivity = (): React.ReactElement => {
 
             {
                 properties.provisionedReconfigurationSupported &&
-                <Grid container spacing={1} sx={{mb: 1}} direction="row">
-                    <Grid item xs="auto" style={{flexGrow: 1}}>
+                <Grid2 container spacing={1} sx={{mb: 1}} direction="row">
+                    <Grid2 style={{flexGrow: 1}}>
                         <TextField
                             style={{width: "100%"}}
                             label="SSID/Wi-Fi name"
@@ -231,8 +230,8 @@ const WifiConnectivity = (): React.ReactElement => {
                                 setConfigurationModified(true);
                             }}
                         />
-                    </Grid>
-                    <Grid item xs="auto" style={{flexGrow: 1}}>
+                    </Grid2>
+                    <Grid2 style={{flexGrow: 1}}>
                         <FormControl style={{width: "100%"}} variant="standard">
                             <InputLabel htmlFor="standard-adornment-password">PSK/Password</InputLabel>
                             <Input
@@ -261,8 +260,8 @@ const WifiConnectivity = (): React.ReactElement => {
                                     setConfigurationModified(true);
                                 }}/>
                         </FormControl>
-                    </Grid>
-                </Grid>
+                    </Grid2>
+                </Grid2>
             }
 
             {
@@ -275,13 +274,20 @@ const WifiConnectivity = (): React.ReactElement => {
                     }}
                 >
                     <Typography color="info">
-                        To connect your robot to a different Wi-Fi network, you need to do a Wi-Fi reset.
+                        To connect your robot to a different Wi-Fi network, you need to do a Wi-Fi reset and then configure the new one using Valetudo.
+                        For most Xiaomi-ecosystem-style robots, this means pressing and holding the two outer buttons
+                        (usually &quot;Home&quot; and Spot Clean&quot; or &quot;Home&quot; and &quot;Power&quot; if there are just two) until the robot talks to you.
                         <br/><br/>
-                        Note that the procedure is different depending on your model of robot, so please refer to the
-                        relevant documentation to figure out how to do that.
-                        After having done that, simply connect to the Wi-Fi AP provided by the robot and then either use
-                        the Valetudo Webinterface
-                        or the Companion app to enter new Wi-Fi credentials.
+                        Some supported robots may have dedicated connectivity buttons you need to press and hold.
+                        If it is anything more special than that, you will find guidance for your model of robot on the
+                        &quot;Supported Robots&quot; page in the docs on <a style={{color: "inherit"}} href="https://valetudo.cloud" target="_blank" rel="noreferrer">valetudo.cloud</a>.<br/>
+                        The robot may also have come with a manual by the vendor, which might contain guidance.
+
+                        <br/><br/>
+
+                        <strong>Note:</strong><br/>
+                        Don&apos;t be confused by buttons labelled &quot;Reset&quot; close to a Wi-Fi LED.<br/>
+                        Proximity does not mean that they&apos;re related. Instead, they usually factory-reset the machine, which is not what you want.
                     </Typography>
                 </InfoBox>
             }
@@ -290,8 +296,8 @@ const WifiConnectivity = (): React.ReactElement => {
 
             {
                 properties.provisionedReconfigurationSupported &&
-                <Grid container>
-                    <Grid item style={{marginLeft: "auto"}}>
+                <Grid2 container>
+                    <Grid2 style={{marginLeft: "auto"}}>
                         <LoadingButton
                             loading={configurationUpdating}
                             color="primary"
@@ -303,8 +309,8 @@ const WifiConnectivity = (): React.ReactElement => {
                         >
                             Save configuration
                         </LoadingButton>
-                    </Grid>
-                </Grid>
+                    </Grid2>
+                </Grid2>
             }
             <ConfirmationDialog
                 title="Apply new Wi-Fi configuration?"
@@ -366,7 +372,7 @@ const WifiConnectivityPage = (): React.ReactElement => {
 
     return (
         <PaperContainer>
-            <Grid container direction="row">
+            <Grid2 container direction="row">
                 <Box style={{width: "100%"}}>
                     <DetailPageHeaderRow
                         title="Wi-Fi Connectivity"
@@ -381,7 +387,7 @@ const WifiConnectivityPage = (): React.ReactElement => {
 
                     <WifiConnectivity/>
                 </Box>
-            </Grid>
+            </Grid2>
         </PaperContainer>
     );
 };

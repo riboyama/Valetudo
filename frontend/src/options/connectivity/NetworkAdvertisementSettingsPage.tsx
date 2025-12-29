@@ -3,7 +3,7 @@ import {
     Checkbox,
     Divider,
     FormControlLabel,
-    Grid,
+    Grid2,
     Skeleton,
     TextField,
     Typography
@@ -77,8 +77,8 @@ const NetworkAdvertisementSettings = (): React.ReactElement => {
                 label="Network Advertisement enabled"
                 sx={{mb: 1, marginTop: "1rem", userSelect: "none"}}
             />
-            <Grid container spacing={1} sx={{mb: 1, mt: "1rem"}} direction="row">
-                <Grid item xs="auto" style={{flexGrow: 1}}>
+            <Grid2 container spacing={1} sx={{mb: 1, mt: "1rem"}} direction="row">
+                <Grid2 style={{flexGrow: 1}}>
                     <TextField
                         style={{width: "100%"}}
                         label="Zeroconf Hostname"
@@ -89,8 +89,8 @@ const NetworkAdvertisementSettings = (): React.ReactElement => {
                             readOnly: true,
                         }}
                     />
-                </Grid>
-            </Grid>
+                </Grid2>
+            </Grid2>
 
             <InfoBox
                 boxShadow={5}
@@ -100,18 +100,22 @@ const NetworkAdvertisementSettings = (): React.ReactElement => {
                 }}
             >
                 <Typography color="info">
-                    When running Valetudo in embedded mode, it will advertise its presence on your local network
-                    via both Bonjour/mDNS and SSDP/UPnP to enable other software such as the android companion app
-                    or the windows explorer to discover it.
+                    To allow quick autodiscovery by the companion apps, Valetudo advertises its presence on your
+                    local network using mDNS/Bonjour and SSDP/UPnP.
+                    It is not recommended to disable this feature, as it will break those companion apps.
                     <br/><br/>
-                    Please note that disabling this feature <em>will break</em> the companion app as well as other
-                    things that may be able to auto-discover Valetudo instances on your network.
+                    One common pitfall of these &quot;it just works&quot; technologies is that they&apos;re incredibly hard to debug
+                    the moment they don&apos;t anymore. They&apos;re using Multicast broadcasts, which, by-default, cannot traverse
+                    subnet boundaries. It is also a networking feature obscure enough to still sometimes be broken
+                    by bad Wi-Fi driver or OS updates, misconfiguration or just broken hardware in general.<br/>
+                    They are, however, optional, as you just need to know the IP of the robot to talk with Valetudo.
+                    You can get that from your router&apos;s webinterface and then e.g., create a browser bookmark for it.
                 </Typography>
             </InfoBox>
 
             <Divider sx={{mt: 1}} style={{marginBottom: "1rem"}}/>
-            <Grid container>
-                <Grid item style={{marginLeft: "auto"}}>
+            <Grid2 container>
+                <Grid2 style={{marginLeft: "auto"}}>
                     <LoadingButton
                         loading={configurationUpdating}
                         color="primary"
@@ -126,8 +130,8 @@ const NetworkAdvertisementSettings = (): React.ReactElement => {
                     >
                         Save configuration
                     </LoadingButton>
-                </Grid>
-            </Grid>
+                </Grid2>
+            </Grid2>
         </>
     );
 };
@@ -135,7 +139,7 @@ const NetworkAdvertisementSettings = (): React.ReactElement => {
 const NetworkAdvertisementSettingsPage = (): React.ReactElement => {
     return (
         <PaperContainer>
-            <Grid container direction="row">
+            <Grid2 container direction="row">
                 <Box style={{width: "100%"}}>
                     <DetailPageHeaderRow
                         title="Network Advertisement"
@@ -144,7 +148,7 @@ const NetworkAdvertisementSettingsPage = (): React.ReactElement => {
 
                     <NetworkAdvertisementSettings/>
                 </Box>
-            </Grid>
+            </Grid2>
         </PaperContainer>
     );
 };
