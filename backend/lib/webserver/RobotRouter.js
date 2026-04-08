@@ -1,10 +1,11 @@
 const express = require("express");
-
+const Logger = require("../Logger");
 
 const ValetudoRobot = require("../core/ValetudoRobot");
 
 const CapabilitiesRouter = require("./CapabilitiesRouter");
 const {SSEHub, SSEMiddleware} = require("./middlewares/sse");
+const DreameValetudoRobot = require("../robots/dreame/DreameValetudoRobot");
 
 class RobotRouter {
     /**
@@ -61,6 +62,29 @@ class RobotRouter {
         this.router.get("/state/map", async (req, res) => {
             try {
                 res.json(this.robot.state.map);
+            } catch (err) {
+                res.status(500).send(err.toString());
+            }
+        });
+
+        this.router.get("/get-object", async (req, res) => {
+            try {
+                if (this.robot instanceof DreameValetudoRobot) {
+                    const objectName =  req.query.obj_name;
+                    const index = req.query.index;
+                    const fdsObject = this.robot.fdsObjects.slice().reverse().find(obj => obj.name === objectName && obj.index === index);
+
+                    if (fdsObject === undefined) {
+                        Logger.info(`Requested FDS object with name ${objectName} and index ${index} not found.`);
+                        res.status(404).send(`Object ${objectName}/${index} not found`);
+                        return;
+                    }
+
+                    res.json(fdsObject);
+                    return;
+                }
+
+                res.status(418).send("Robot not supported");
             } catch (err) {
                 res.status(500).send(err.toString());
             }
