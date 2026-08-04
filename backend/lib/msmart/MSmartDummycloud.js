@@ -195,7 +195,17 @@ class MSmartDummycloud {
             Logger.debug(`Handling part get for: ${req.body.mapPart}`);
             Logger.debug(req.body);
 
-            res.status(200).json({ "data": {} });
+            let data = {};
+            if (req.body.mapPart === "semantic_node_config") {
+                data = {
+                    uploadDataPeriodInSeconds: {
+                        highFrequency: 2,
+                        lowFrequency:  60
+                    }
+                };
+            }
+
+            res.status(200).json({ data: data });
         });
 
         app.post("/v1/dev2pro/m7/map/list/:part", (req, res) => {
@@ -500,6 +510,39 @@ class MSmartDummycloud {
             // This is cleaner than giving it a default log file to upload, as that will then go through all the trouble for no reason
             // See also iot_node OnErrorUploadLog
             res.status(200).json({});
+        });
+
+        // 
+        app.post("/sts/files/device-diagnoses", (req, res) => {
+            /*
+                Request payloads observed on J15 Max Ultra FW 558
+                
+                body: {
+                    fileName: 'imu_0_.bin',
+                    deviceId: '1887747012869656578aaaaa',
+                    uploadContentType: 'application/octet-stream',
+                    type: 'IMU'
+                }
+                body: {
+                    fileName: 'rects_4_1208764885.bin',
+                    deviceId: '1887747012869656578aaaaa',
+                    uploadContentType: 'application/octet-stream',
+                    type: 'DETECT'
+                }
+                body: {
+                    fileName: 'finish.bin',
+                    deviceId: '1887747012869656578aaaaa',
+                    uploadContentType: 'application/octet-stream',
+                    type: 'IMU'
+                }
+             */
+            res.status(200).json({
+                errorCode: "0",
+                data: {
+                    url: `https://${req.hostname}/_valetudo/fileUpload?ts=${Date.now()}`
+                },
+                nonce: crypto.randomUUID()
+            });
         });
 
         app.all("*splat", (req, res) => {

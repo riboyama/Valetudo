@@ -49,7 +49,9 @@ export enum Capability {
     WifiScan = "WifiScanCapability",
     ZoneCleaning = "ZoneCleaningCapability",
     Quirks = "QuirksCapability",
-    ObstacleImages = "ObstacleImagesCapability"
+    ObstacleImages = "ObstacleImagesCapability",
+    MapAnnotations = "MapAnnotationsCapability",
+    Duststreaming = "DuststreamingCapability",
 }
 
 export type Point = {
@@ -153,7 +155,11 @@ export interface SystemRuntimeInfo {
     gid: number;
     pid: number;
     versions: Record<string, string>;
-    env: Record<string, string>
+    env: Record<string, string>;
+    phoenix: {
+        canReincarnate: boolean;
+        generation: number;
+    }
 }
 
 export enum MapSegmentMaterial {
@@ -161,7 +167,10 @@ export enum MapSegmentMaterial {
     Tile = "tile",
     Wood = "wood",
     WoodHorizontal = "wood_horizontal",
-    WoodVertical = "wood_vertical"
+    WoodVertical = "wood_vertical",
+    Carpet = "carpet",
+    CarpetLow = "carpet_low",
+    CarpetHigh = "carpet_high"
 }
 
 
@@ -376,6 +385,10 @@ export interface NTPClientConfiguration {
     timeout: number;
 }
 
+export interface DuststreamingConfiguration {
+    enabled: boolean;
+}
+
 export interface ValetudoEvent {
     __class: string;
     id: string;
@@ -384,6 +397,11 @@ export interface ValetudoEvent {
     type?: string;
     subType?: string;
     message?: string;
+    reason?: string;
+    description?: string;
+    previousVersion?: string;
+    newVersion?: string;
+    generation?: number;
 }
 
 export interface ValetudoEventInteraction {
@@ -622,6 +640,12 @@ export interface ObstacleImagesProperties {
     }
 }
 
+export interface DuststreamingProperties {
+    width: number,
+    height: number,
+    duststreamerInstalled: boolean
+}
+
 export type MopDockMopWashTemperature = "cold" | "warm" | "hot" | "scalding" | "boiling";
 
 export interface MopDockMopWashTemperaturePayload {
@@ -630,6 +654,22 @@ export interface MopDockMopWashTemperaturePayload {
 
 export interface MopDockMopWashTemperatureProperties {
     supportedTemperatures: Array<MopDockMopWashTemperature>;
+}
+
+export enum ValetudoMapAnnotationType {
+    Threshold = "threshold",
+    Curtain = "curtain",
+
+    Ramp = "ramp",
+}
+
+export interface ValetudoMapAnnotation {
+    type: ValetudoMapAnnotationType,
+    points: Array<Point>
+}
+
+export interface MapAnnotationsProperties {
+    supportedAnnotationTypes: Array<ValetudoMapAnnotationType>
 }
 
 
