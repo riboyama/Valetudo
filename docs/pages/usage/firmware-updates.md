@@ -24,12 +24,19 @@ Since rooting means installing a full rooted firmware image, updating the firmwa
 It is not required to go through the whole initial rooting procedure again, as a rooted firmware grants you root on the machine.
 All you thus need is shell access via SSH or UART/ADB (depending on the bot).
 
-Using that access, you build a new firmware using <a href="https://builder.dontvacuum.me" rel="noopener" target="_blank">the dustbuilder</a>, download it to the right location on the robot, then do the right thing to install it.
+Using that access, you build a new firmware using the "for manual installation using SSH" option of <a href="https://builder.dontvacuum.me" rel="noopener" target="_blank">the dustbuilder</a>, download it to the right location on the robot, then do the right thing to install it.
 
-Said right location and right thing can be deduced from the initial rooting instructions, and will probably be something like "run the bundled install script".
+Said right location and right thing can usually be deduced from the initial rooting instructions, and will probably be something like "run the bundled install script".
+
+If not, a `/tmp` with sufficient free space is probably a good guess for the former - as it is usually a `tmpfs`. If that does not exist, a large writable partition - usually `/data`, `/mnt/data` or `/userdata` - is the next best option - and will require a cleanup once you're done.
+
+The right script to run will likely be the least specifically named bundled one with a name along the lines of `install.sh` - unless there is exceptionally strong reason to believe otherwise.
+
 
 Just as with the rooting instructions, flashing a new image is a potentially dangerous process, so I need you - lucidly - in the driver seat there, as I am not going to take responsibility for you.
 Therefore - and for maintenance reasons - the individual per-bot instructions cannot be duplicated here.
+
+That said, there shouldn't be any obvious footguns. Or so I hope.
 
 ### Misc notes
 
