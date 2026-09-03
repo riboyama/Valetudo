@@ -351,7 +351,7 @@ I do not want to ask you to pay for a license and all that crap. <br/>
 And I certainly do not want to turn a hobby into something that makes money, just so that I have to go and find a new hobby.
 
 I want to just craft curated experiences.<br/>
-You probably too want me (and others!) to want and do that, as it adds color and flavor to an otherwise bland gray world.
+You probably also want me (and others!) to want and do that, as it adds color and flavor to an otherwise bland gray world.
 
 And yes, of course, Valetudo is not the best example for that. It's software for vacuum cleaners.<br/>
 But you should get the point.
