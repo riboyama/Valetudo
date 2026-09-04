@@ -300,7 +300,6 @@ export interface MQTTConfiguration {
     };
     customizations: {
         topicPrefix: string;
-        provideMapData: boolean;
     };
     interfaces: {
         homie: {
