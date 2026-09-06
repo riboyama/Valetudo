@@ -31,7 +31,6 @@ import {
     SettingsRemote as SettingsRemoteIcon,
     Videocam as CameraIcon,
     GitHub as GithubIcon,
-    Favorite as DonateIcon,
     MenuBook as DocsIcon,
     Wysiwyg as SystemInformationIcon,
     Info as AboutIcon,
@@ -46,7 +45,8 @@ import {useCapabilitiesSupported} from "../CapabilitiesProvider";
 import {
     RobotMonochromeIcon,
     SwaggerUIIcon,
-    ValetudoMonochromeIcon
+    ValetudoMonochromeIcon,
+    ValetudoHeartMonochromeIcon
 } from "./CustomIcons";
 
 interface MenuEntry {
@@ -548,7 +548,7 @@ const ValetudoAppBar: React.FunctionComponent<{ paletteMode: PaletteMode, setPal
                         onClick={(e) => e.stopPropagation()}
                     >
                         <ListItemIcon>
-                            <DonateIcon/>
+                            <ValetudoHeartMonochromeIcon/>
                         </ListItemIcon>
                         <ListItemText primary="Donate"/>
                     </ListItemButton>
